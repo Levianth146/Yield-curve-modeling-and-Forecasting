@@ -1,0 +1,19 @@
+                          Probit Regression Results                           
+==============================================================================
+Dep. Variable:        recession_ahead   No. Observations:                  238
+Model:                         Probit   Df Residuals:                      236
+Method:                           MLE   Df Model:                            1
+Date:                Tue, 29 Sep 2026   Pseudo R-squ.:                  0.5593
+Time:                        17:35:01   Log-Likelihood:                -43.797
+converged:                       True   LL-Null:                       -99.382
+Covariance Type:            nonrobust   LLR p-value:                 5.429e-26
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+const         -0.5346      0.151     -3.545      0.000      -0.830      -0.239
+spread        -2.5100      0.376     -6.684      0.000      -3.246      -1.774
+==============================================================================
+
+Possibly complete quasi-separation: A fraction 0.22 of observations can be
+perfectly predicted. This might indicate that there is complete
+quasi-separation. In this case some parameters will not be identified.

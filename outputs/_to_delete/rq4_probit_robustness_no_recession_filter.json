@@ -1,0 +1,15 @@
+{
+  "note": "Robustness check: chi giu thang chua suy thoai tai t truoc khi gan nhan (xem docs/probit_review_external.md). Cung cua so 2000-2026 va split 2021-12-31 nhu ban chinh.",
+  "n_obs_baseline": 308,
+  "n_obs_no_recession_filter": 277,
+  "coef_spread": -0.8752662175577689,
+  "pvalue_spread": 1.3199609014267227e-07,
+  "mcfadden_r2": 0.21199492308606038,
+  "auc_full": 0.8218072844628862,
+  "brier_full": 0.10120766352833269,
+  "auc_train": 0.9254794134235759,
+  "auc_test": null,
+  "brier_test": 0.4803932919794796,
+  "brier_test_naive_benchmark": 0.02387223931183113,
+  "train_base_rate": 0.15450643776824036
+}

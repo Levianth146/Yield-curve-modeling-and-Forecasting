@@ -1,0 +1,9 @@
+{
+  "status": "partial",
+  "world_bank": true,
+  "vn_treasury_ns": false,
+  "limitation": "Chua co file loi suat TPCP VN da ky han (HNX/VBMA) trong repo; chi chay World Bank macro hang nam. Khong dua WB vao VAR chinh.",
+  "wb_rows": 41,
+  "wb_start": "1985-01-01",
+  "wb_end": "2025-01-01"
+}

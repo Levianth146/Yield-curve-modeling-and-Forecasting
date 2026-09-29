@@ -1,0 +1,3 @@
+nls_convergence_rate=1.0000
+Sample: most recent 60 trading days used in compare_ols_vs_nls().
+See docs/fix_log.md (Van de #2) for methodology (bounded L-BFGS-B, multi-start).

@@ -1,0 +1,13 @@
+{
+  "is_stable": true,
+  "n_roots": 20,
+  "max_abs_inv_root": 0.9606666309961002,
+  "columns": [
+    "cpi_yoy",
+    "fed_funds",
+    "level",
+    "slope",
+    "curvature"
+  ],
+  "lag_order": 4
+}

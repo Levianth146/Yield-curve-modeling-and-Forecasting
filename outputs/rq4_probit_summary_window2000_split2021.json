@@ -1,0 +1,23 @@
+{
+  "coef_spread": -0.28309480968016887,
+  "pvalue_spread": 0.001165447442639031,
+  "mcfadden_r2": 0.03456658540525792,
+  "auc_full": 0.6375512295081966,
+  "auc_train": 0.7321875,
+  "auc_test": null,
+  "current_spread": 0.6400000000000006,
+  "current_prob": 0.23395486363996115,
+  "confusion_matrix": [
+    [
+      244,
+      0
+    ],
+    [
+      64,
+      0
+    ]
+  ],
+  "brier_full": 0.15958487712863598,
+  "brier_test": 0.27908542707043354,
+  "brier_test_naive_benchmark": 0.05876951331496785
+}

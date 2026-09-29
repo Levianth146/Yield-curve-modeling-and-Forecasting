@@ -1,0 +1,5 @@
+{
+  "world_bank": true,
+  "vn_treasury_ns": false,
+  "limitation": "Chua co file loi suat TPCP VN da ky han (HNX/VBMA). Dat CSV tai data/vn_treasury_yields.csv de chay NS. Khong dua World Bank (tan suat nam) vao VAR chinh."
+}
