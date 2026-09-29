@@ -1,3 +1,4 @@
 nls_convergence_rate=1.0000
-Sample: most recent 60 trading days used in compare_ols_vs_nls().
-See docs/fix_log.md (Van de #2) for methodology (bounded L-BFGS-B, multi-start).
+Sample: moi 25 ngay giao dich tren toan mau (2000-01-03 -> 2026-09-10) (268 ngay).
+Hoi tu KHONG co nghia nhan to NLS on dinh/dien giai duoc - xem rq1_ols_vs_nls_summary.json.
+See docs/fix_log.md (Van de #2, #12) for methodology (bounded L-BFGS-B, multi-start).

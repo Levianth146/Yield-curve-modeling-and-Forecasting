@@ -1,13 +1,18 @@
 {
+  "inflation_variable": "cpi_mom_ann",
   "is_stable": true,
   "n_roots": 20,
-  "max_abs_inv_root": 0.9606666309961002,
+  "max_abs_inv_root": 0.964970594878196,
   "columns": [
-    "cpi_yoy",
+    "cpi_mom_ann",
     "fed_funds",
     "level",
     "slope",
     "curvature"
   ],
-  "lag_order": 4
+  "lag_order": 4,
+  "lag_rule": "AIC min trong cac p co Portmanteau>0.05",
+  "portmanteau_p_at_lag": 0.06864419635643687,
+  "whiteness_ok": true,
+  "n_obs": 315
 }

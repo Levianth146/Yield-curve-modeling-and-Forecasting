@@ -1,0 +1,83 @@
+{
+  "files": {
+    "10": {
+      "file": "03b30e56-Vietnam_10-Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-01",
+      "end": "2026-09-29",
+      "n": 2276
+    },
+    "15": {
+      "file": "0fde0a44-Vietnam_15_Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-15",
+      "end": "2026-09-28",
+      "n": 2225
+    },
+    "7": {
+      "file": "95401a11-Vietnam_7-Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-01",
+      "end": "2026-09-29",
+      "n": 2277
+    },
+    "3": {
+      "file": "9729df28-Vietnam_3-Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-01",
+      "end": "2026-09-29",
+      "n": 2276
+    },
+    "2": {
+      "file": "af1e39d1-Vietnam_2-Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-01",
+      "end": "2026-09-29",
+      "n": 2275
+    },
+    "5": {
+      "file": "b72dcbd1-Vietnam_5-Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-01",
+      "end": "2026-09-29",
+      "n": 2277
+    },
+    "1": {
+      "file": "c56537ec-Vietnam_1-Year_Bond_Yield_Historical_Data.csv",
+      "start": "2018-01-01",
+      "end": "2026-09-29",
+      "n": 2276
+    }
+  },
+  "warnings": [
+    "Ky han 15Y co nhieu file (f0c07bbd-Vietnam_15_Year_Bond_Yield_Historical_Data.csv); giu ban day nhat, giong nhau=True"
+  ],
+  "flat_share_by_maturity": {
+    "1": 0.265,
+    "2": 0.232,
+    "3": 0.183,
+    "5": 0.099,
+    "7": 0.105,
+    "10": 0.083,
+    "15": 0.126
+  },
+  "flat_share_by_year": {
+    "2018": 0.094,
+    "2019": 0.097,
+    "2020": 0.067,
+    "2021": 0.099,
+    "2022": 0.109,
+    "2023": 0.142,
+    "2024": 0.258,
+    "2025": 0.247,
+    "2026": 0.366
+  },
+  "days_all_maturities_unchanged_by_year": {
+    "2018": 8,
+    "2019": 8,
+    "2020": 5,
+    "2021": 3,
+    "2022": 6,
+    "2023": 5,
+    "2024": 6,
+    "2025": 6,
+    "2026": 11
+  },
+  "n_days": 2274,
+  "start": "2018-01-01",
+  "end": "2026-09-29"
+}

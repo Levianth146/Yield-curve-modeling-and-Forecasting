@@ -1,73 +1,109 @@
-spec,lag,stable,order,impulse,response,h,irf,lo,hi,significant
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,1,0.140626242763848,0.07944749725227206,0.19313620154145777,True
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,6,0.2244051585523728,0.12283623085313745,0.30845319167308494,True
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,12,0.21129094457170716,0.08776441429507004,0.3055165998026728,True
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,24,0.10315990374728382,-0.014356874363461935,0.17245413818479075,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,1,0.004882745514074637,-0.03638329990192148,0.04729710128859463,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,6,0.00819011201422183,-0.04420694395953441,0.05191148568289801,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,12,0.019014276898866096,-0.035802643955440645,0.06278290550027903,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,24,0.0326862194141371,-0.025429973168464886,0.0931118708677025,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,1,0.08027265518234902,0.03222403580127237,0.1220751916538278,True
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,6,0.028110468991616108,-0.0369708803398679,0.07797373399038868,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,12,0.019654556676760818,-0.031045572209268155,0.061019492949717154,False
-co so (AIC),4,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,24,0.004403066943568028,-0.04627915707815852,0.04212632154461372,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,1,0.1768283072602484,0.11514566466548186,0.22871252006556722,True
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,6,0.23683572808182354,0.13386105380954744,0.31474527716955203,True
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,12,0.19605177156546075,0.07599053513799067,0.27201639817652046,True
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,24,0.11296066846885316,-0.01772791837994536,0.18571136848633954,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,1,0.006533429024841162,-0.027215305520011106,0.03461844473361671,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,6,0.02498573610427892,-0.015339917356227492,0.06768054968118341,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,12,0.032255687127299204,-0.019871490465054743,0.08460467017122733,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,24,0.03453069862493613,-0.030525553807739986,0.08939297015614803,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,1,0.07977763389759553,0.03764908756687944,0.12120978280813827,True
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,6,0.03940904501728847,-0.006843365550980508,0.07012234091596736,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,12,0.028044972644827672,-0.01608121074408498,0.056055680066887104,False
-BIC,2,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,24,0.01161912141981718,-0.028493203006745498,0.04009909442538539,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,1,0.11269518296596544,0.05275428897992776,0.15335112258571226,True
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,6,0.1870251757543783,0.09899794042544248,0.24607058996326275,True
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,12,0.19649815523327263,0.08333119571006728,0.2622981571272755,True
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,24,0.09426832383649597,-0.004672299635692871,0.16846384336133846,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,1,0.010869806316362758,-0.0323720708730995,0.040155516243980005,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,6,0.005459535128796984,-0.04447389792279594,0.04082709693719862,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,12,0.011023056321086407,-0.03788601414235481,0.05548074690264456,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,24,0.025059363023380916,-0.0268828441028628,0.07289326557568594,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,1,0.08459162387265623,0.03959734300396701,0.1209293321628727,True
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,6,-0.012845237745005438,-0.07480741794021419,0.05030610405956843,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,12,-0.003973141504772346,-0.06533224029813417,0.05418147688126302,False
-lag=6,6,True,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,24,-0.006273999674046048,-0.06353441511654495,0.05103855378978114,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,slope,1,-0.005583841461444165,-0.03324085146547523,0.028264799749154725,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,slope,6,0.00688194124124862,-0.04086595841254395,0.05998236385170884,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,slope,12,-0.0022411410128754462,-0.05578524777143199,0.052520926771748536,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,slope,24,-0.01900013345972793,-0.07167957124061748,0.02778437395214142,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,level,1,0.014118982013098495,-0.008553164431489348,0.035322101184598206,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,level,6,-0.012203370819075502,-0.04394742719553371,0.014701934720589581,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,level,12,-0.01618698226618956,-0.043303390717986584,0.009934616577820517,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,fed_funds,level,24,-0.025541791639474204,-0.05240222004100784,0.0003576512658024073,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,cpi_yoy,level,1,0.02860791478515927,-0.005641348957964841,0.05409156676080008,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,cpi_yoy,level,6,-0.007058490079417039,-0.057041441610314395,0.03978902205436724,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,cpi_yoy,level,12,-0.008691935830141209,-0.05658296258569167,0.03264895523290336,False
-Cholesky dao nguoc,4,True,curvature > slope > level > fed_funds > cpi_yoy,cpi_yoy,level,24,-0.012957910293894129,-0.05430318121880052,0.02296940235905036,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,slope,1,-0.0008890393197711359,-0.030362307863961036,0.03083076752829116,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,slope,6,0.018774537808779135,-0.026084223516929572,0.06628049691614062,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,slope,12,0.013311984448835353,-0.04543520443733874,0.06286946723904495,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,slope,24,-0.009274370115658348,-0.061892218745574074,0.03784479258453305,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,level,1,0.006664834976295016,-0.013703058191411403,0.03088904560902475,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,level,6,-0.010097420442116837,-0.038846072547518845,0.015142832937225013,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,level,12,-0.013558206155457291,-0.03905654280220838,0.010802200160428307,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,fed_funds,level,24,-0.021579674042665142,-0.04558265566131496,0.003711218240093639,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,cpi_yoy,level,1,0.031198372011691348,-0.0009933050205663317,0.05638604711506949,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,cpi_yoy,level,6,-0.00983802022584879,-0.06310386151970987,0.036089893487245554,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,cpi_yoy,level,12,-0.012399322126928573,-0.05797893821888149,0.029853178513585894,False
-Cholesky: nhan to truoc vi mo,4,True,level > slope > curvature > cpi_yoy > fed_funds,cpi_yoy,level,24,-0.01883104425015315,-0.06214581909714715,0.01992576530659435,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,slope,1,0.12520149343901768,0.06485565365393199,0.17549869936194912,True
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,slope,6,0.20533583157700472,0.10058763475938924,0.2889590586185111,True
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,slope,12,0.19054633141748106,0.06802012162844093,0.28517780825405953,True
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,slope,24,0.08927455050186918,-0.02157807773167093,0.15672650116837328,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,level,1,0.019489211827225808,-0.025172620082708774,0.06128020726987071,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,level,6,0.013195694348035372,-0.038877924365513995,0.05815591122481815,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,level,12,0.022289767200484444,-0.030890733244367728,0.06809020214477801,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,fed_funds,level,24,0.03294002627457074,-0.024923938258212392,0.09217313983105578,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,cpi_yoy,level,1,0.07802378481035802,0.03168075648323258,0.11772871080925561,True
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,cpi_yoy,level,6,0.026137139330985215,-0.03539569021744979,0.07589038383676215,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,cpi_yoy,level,12,0.015843314119683267,-0.03672176451109937,0.059604807368863075,False
-Cholesky: fed_funds dau,4,True,fed_funds > cpi_yoy > level > slope > curvature,cpi_yoy,level,24,-0.0016524548796318515,-0.05631840415256224,0.039654658312481855,False
+spec,lag,stable,portmanteau_p,order,impulse,response,h,irf,lo,hi,significant
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,1,0.13977014397104895,0.078164982883419,0.19249488558572186,True
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,6,0.23377326326590347,0.12731351095965196,0.3189337433135738,True
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,12,0.21580068794031665,0.08214535799599221,0.31074158132916085,True
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,24,0.10238091853291599,-0.01475033650832923,0.17493543641268328,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,1,0.013742777166139456,-0.027898259266680343,0.05350061126818947,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,6,0.01615296288814548,-0.04068583794949425,0.05910558612935063,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,12,0.023736458564409136,-0.035139463582394725,0.07357294619062862,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,24,0.03705219116409854,-0.025092020997883154,0.09628099882183101,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,1,0.0678620741151791,0.02690148880124861,0.0975868550494753,True
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,6,0.055348528285508757,-0.008165139492304413,0.10088274063893668,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,12,0.05185756294061896,-0.01003687373505385,0.09834635770547381,False
+co so (AIC + Portmanteau),4,True,0.06864419635643687,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,24,0.04189677982997112,-0.009129214682496195,0.07918082486642188,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,1,0.17741824086869107,0.11686455344168808,0.22893004895301008,True
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,6,0.23567235686865282,0.13101539632505554,0.31662002708094517,True
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,12,0.19473510540707287,0.07199140981403826,0.26964352334998626,True
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,24,0.11088052651641198,-0.021559326594091627,0.1735954970907801,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,1,0.007253744600864706,-0.030071190185470064,0.038102922268884745,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,6,0.027306503516721668,-0.016096256365857573,0.07227337638842304,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,12,0.03407397317846451,-0.019030261597086897,0.08495442908274586,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,24,0.03499610461040865,-0.033599861001939325,0.09304449739605564,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,1,0.06659397829205928,0.025016288160619654,0.10207050442806802,True
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,6,0.049154014944628066,0.004181289735382938,0.07822088362543002,True
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,12,0.040646579391037906,-0.0027659054015955267,0.06514806352551465,False
+lag=2 (BIC khong rang buoc),2,True,0.0028532465822539562,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,24,0.02631065422493058,-0.013703419702539561,0.05138302166407709,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,1,0.09730356959784546,0.03706561943961089,0.13490808569180077,True
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,6,0.07890205949882852,-0.00822899888517489,0.14870497882042397,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,12,0.08591917375310278,-0.009374143509593051,0.16307091842761687,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,24,0.06025835053113325,-0.04390534808686564,0.1374394228418014,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,1,0.019312623354049076,-0.01990444817664007,0.05769300232162821,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,6,0.03643826404706515,-0.029353628514791397,0.08844186573687232,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,12,0.008913377047834594,-0.04561962917206507,0.058286871553586535,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,24,0.023831836450252025,-0.021095018983898192,0.07336676290808816,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,1,0.07423193247410384,0.028659937228882857,0.10935821764327971,True
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,6,0.06551629911233846,-0.012565540663374583,0.12148438811986335,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,12,0.06795299837812022,-0.02335747799294051,0.12221492328544113,False
+lag=12,12,True,1.4606092253788506e-13,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,24,0.06899915780127704,-0.011608073553352628,0.12214949247591499,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,slope,1,-0.003249036442218737,-0.03129658433967923,0.03143610015453225,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,slope,6,0.017267070453941002,-0.028847281025970978,0.06701769984221632,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,slope,12,0.010974186671146125,-0.04156326667344909,0.06120048757807592,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,slope,24,-0.010926689032183658,-0.06694181631251257,0.03577363751124991,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,level,1,0.014067363286268019,-0.010014579924749587,0.03549525313074443,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,level,6,-0.005354790965917972,-0.03629521477433238,0.018198604047061504,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,level,12,-0.009081861135590428,-0.03495308970418651,0.014737288748350952,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,fed_funds,level,24,-0.017911961325801223,-0.044471457118640575,0.005657762066062062,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,cpi_mom_ann,level,1,0.008676712579603741,-0.020336259262950802,0.03215007166222361,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,cpi_mom_ann,level,6,0.015479514931693356,-0.03451532277302851,0.06901620107715782,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,cpi_mom_ann,level,12,0.01962615717787466,-0.03227889089992761,0.07258077011869467,False
+Cholesky dao nguoc,4,True,0.06864419635642938,curvature > slope > level > fed_funds > cpi_mom_ann,cpi_mom_ann,level,24,0.022196126592818603,-0.024738769028918087,0.06439795434075596,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,slope,1,-0.006709553410849558,-0.03356661737206279,0.027646926478885506,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,slope,6,0.014626584209378074,-0.03171704843633254,0.06463661519081544,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,slope,12,0.00551902627759487,-0.05227063560904122,0.06601465277673547,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,slope,24,-0.015047655609631606,-0.06980207326934297,0.03109874779462675,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,level,1,0.011550083722166532,-0.01377145869123541,0.032409036323490154,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,level,6,-0.008940949791243165,-0.039523574827995026,0.016831896169339697,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,level,12,-0.013560561267025435,-0.04190827526382886,0.011886176347280609,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,fed_funds,level,24,-0.022750111650699522,-0.049123866253501694,0.00343014012484407,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,cpi_mom_ann,level,1,0.011822504685042015,-0.014257675692521005,0.03575021724220354,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,cpi_mom_ann,level,6,0.013724014924199992,-0.035938961756917284,0.06595183160656673,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,cpi_mom_ann,level,12,0.016845694565082198,-0.03279109421529724,0.06646795220552348,False
+Cholesky: nhan to truoc vi mo,4,True,0.06864419635642924,level > slope > curvature > cpi_mom_ann > fed_funds,cpi_mom_ann,level,24,0.017202872264309527,-0.027690411645999075,0.05991083594114645,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,slope,1,0.12933880195772685,0.06770111719677244,0.18271216493363382,True
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,slope,6,0.22511135096002172,0.11707393038337811,0.31580095599504854,True
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,slope,12,0.21017747403324888,0.07713662656661383,0.30651898255418475,True
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,slope,24,0.098224230699078,-0.023540511128713346,0.1689222045942922,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,level,1,0.025515449049515762,-0.021629529821367458,0.06713864408345833,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,level,6,0.025677023801590135,-0.03041337803327653,0.0701583067811615,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,level,12,0.03252450919555841,-0.02549652848449741,0.07970046578718665,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,fed_funds,level,24,0.043871081528370624,-0.019021594503346353,0.10054436221315056,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,cpi_mom_ann,level,1,0.06436681510882564,0.02123196694065663,0.09316806313960271,True
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,cpi_mom_ann,level,6,0.05162429895049466,-0.008574913321438313,0.09935512912850739,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,cpi_mom_ann,level,12,0.04684850692293334,-0.012260367037809318,0.09265652708881324,False
+Cholesky: fed_funds dau,4,True,0.06864419635643179,fed_funds > cpi_mom_ann > level > slope > curvature,cpi_mom_ann,level,24,0.03469197653223201,-0.01532972650896316,0.07073239459721864,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,1,0.10073551695008807,0.03752807459991576,0.1386890981406155,True
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,6,0.09132784015012899,0.006584985425589368,0.15595546793300344,True
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,12,0.08291875057232494,-0.018043765097798082,0.16600206676879456,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,slope,24,0.0491263088839307,-0.03715909656540129,0.13380006009556122,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,1,0.011188795760801479,-0.02803850486307486,0.049278422225943676,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,6,0.021097136152691518,-0.03670228130321245,0.0718934341722643,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,12,-0.015475325087182499,-0.0617013872204935,0.034131426623360966,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,fed_funds,level,24,0.011796055563356927,-0.04237304281199178,0.057795190934775996,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,1,0.10056042920177483,0.052648947497132455,0.12868810212859996,True
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,6,0.025247207649103737,-0.037685544278912964,0.07491978399281905,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,12,0.021905536948731347,-0.041505348626952994,0.07502239722327056,False
+Lam phat so voi cung ky (YoY),12,True,3.3009236828582436e-20,cpi_yoy > fed_funds > level > slope > curvature,cpi_yoy,level,24,0.04391127587257347,-0.0067222444049816156,0.07319220692880746,False
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,slope,1,0.14535967425723065,0.0845142508403767,0.197782542569487,True
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,slope,6,0.2307782889090805,0.12721491296054818,0.31366381817851946,True
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,slope,12,0.2201886452875573,0.08790486750389367,0.3090372051099027,True
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,slope,24,0.10681316255812665,-0.014173957284719417,0.17666963775439185,False
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,level,1,0.006428204211244416,-0.036502757349722616,0.04675047321398829,False
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,level,6,0.0140446920220909,-0.03720401678809191,0.059578105797685535,False
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,level,12,0.01974496968692358,-0.03473787999885038,0.06751480460588272,False
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,fed_funds,level,24,0.03574258619245915,-0.022788659744829444,0.09295073247040997,False
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,cpi_mom_ann_raw,level,1,0.08771552311389061,0.04042763508190114,0.1242759348018721,True
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,cpi_mom_ann_raw,level,6,0.05732255408570043,0.020120197451042474,0.08583493649597092,True
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,cpi_mom_ann_raw,level,12,0.05569719938948698,0.014574786680784898,0.08055812599121216,True
+M/M quy nam KHONG winsorize,4,True,0.015974501942827676,cpi_mom_ann_raw > fed_funds > level > slope > curvature,cpi_mom_ann_raw,level,24,0.035775267931114914,-0.011463203665837118,0.06729691310954235,False
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,1,0.12563651156268876,0.06835064555457046,0.18227660820359928,True
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,6,0.22850338418776112,0.12083953627143491,0.3289554092364812,True
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,12,0.29016535639235513,0.14059051285930227,0.44462906664640767,True
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,slope,24,0.3208402497790118,0.1467074414736076,0.5283273377716691,True
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,1,0.018390057235047202,-0.028010387896379677,0.05524038542011706,False
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,6,0.027941650080411266,-0.02819045916632312,0.07559343607953951,False
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,12,0.028676070905012625,-0.03592480476082693,0.08662411982869647,False
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,fed_funds,level,24,0.029777339449987134,-0.04257536709848234,0.10097787783501261,False
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,1,0.07340918035744554,0.031243710878890708,0.102999974576604,True
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,6,0.07116322678162441,0.0016659575965635163,0.12344832082973295,True
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,12,0.07447101684432489,-0.005119492403501592,0.13523346604790668,False
+Sai phan them fed_funds va slope (I(1)),4,True,0.1097084346583027,cpi_mom_ann > fed_funds > level > slope > curvature,cpi_mom_ann,level,24,0.07460702219984826,-0.0062234761420175986,0.13792571510280557,False

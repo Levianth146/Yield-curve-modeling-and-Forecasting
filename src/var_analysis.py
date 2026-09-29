@@ -92,10 +92,12 @@ def test_stationarity_all(data: pd.DataFrame):
     return pd.DataFrame(rows)
 
 
-def prepare_var_data(data: pd.DataFrame, alpha: float = 0.05):
+def prepare_var_data(data: pd.DataFrame, alpha: float = 0.05, force_diff=()):
     """
     Quy tac nhom (bao cao, muc 3.1.1): ADF (hang so + xu huong) tren chuoi goc;
-    p >= alpha -> I(1), lay sai phan bac 1 va kiem tra ADF lai.
+    p >= alpha -> I(1), lay sai phan bac 1 va kiem tra ADF lai. `force_diff`: ten cac cot BUOC
+    sai phan bat ke ket qua ADF (dung cho kiem tra do ben: bien gan nghiem don vi nhu fed_funds,
+    slope - ADF bac bo nhung KPSS/nghiem nghich dao ~0.97 cho thay rat dai dang).
 
     Returns
     -------
@@ -106,7 +108,7 @@ def prepare_var_data(data: pd.DataFrame, alpha: float = 0.05):
     for c in data.columns:
         x = data[c].astype(float).dropna()
         _, p_level = _adf(x, regression="ct")
-        if p_level < alpha:
+        if p_level < alpha and c not in force_diff:
             cols[c] = x
             rows.append({"series": c, "adf_p_level": p_level, "transform": "level",
                          "adf_p_after": p_level})
@@ -120,22 +122,39 @@ def prepare_var_data(data: pd.DataFrame, alpha: float = 0.05):
     return ensure_monthly_freq(transformed), pd.DataFrame(rows)
 
 
+def select_var_lag(data: pd.DataFrame, maxlags: int = config.VAR_MAX_LAG, ic: str = config.VAR_IC,
+                   alpha: float = config.VAR_PORTMANTEAU_ALPHA):
+    """
+    Luat chon do tre theo dac ta nhom: quet p = 1..maxlags, chon p co AIC (hoac BIC) nho nhat
+    TRONG SO cac p co Portmanteau p-value > alpha. Neu khong p nao dat, quay ve p co IC nho
+    nhat (whiteness_ok = False) - can bao cao ro.
+
+    Returns (p, table, whiteness_ok)
+    """
+    tab = lag_diagnostics(data, maxlags)
+    col = "AIC" if ic == "aic" else "BIC"
+    ok = tab[tab["portmanteau_p"] > alpha]
+    if len(ok):
+        return int(ok.loc[ok[col].idxmin(), "p"]), tab, True
+    return int(tab.loc[tab[col].idxmin(), "p"]), tab, False
+
+
 def fit_var_model(factors_df: pd.DataFrame, macro_df: pd.DataFrame,
                    maxlags=config.VAR_MAX_LAG, ic=config.VAR_IC,
                    factor_cols=("level", "slope", "curvature"),
-                   macro_cols=("cpi_yoy", "fed_funds"), difference: bool = True,
-                   order=None, lag=None):
+                   macro_cols=(config.VAR_INFLATION, "fed_funds"), difference: bool = True,
+                   order=None, lag=None, force_diff=()):
     """
-    Ket hop 3 nhan to NS voi bien vi mo thanh he VAR, tu chon do tre bang
-    AIC/BIC. difference=True: bien I(1) theo ADF duoc lay sai phan (xem
-    prepare_var_data). Chi lay 3 cot nhan to (bo qua rmse/n_maturities).
+    Ket hop 3 nhan to NS voi bien vi mo thanh he VAR. difference=True: bien I(1) theo ADF
+    duoc lay sai phan (prepare_var_data). Do tre: `lag` neu co, khong thi `select_var_lag`
+    (quet 1..maxlags, AIC/BIC nho nhat trong cac p qua Portmanteau > 0.05).
 
-    Cholesky ordering (da chot): cpi_yoy, fed_funds, level, slope, curvature.
+    Cholesky ordering (da chot): lam phat, fed_funds, level, slope, curvature.
 
     Returns
     -------
-    (results, data) : (VARResultsWrapper, pd.DataFrame da bien doi).
-    Bang bien doi: results.transform_table (neu difference=True).
+    (results, data). Gan them: results.transform_table, results.lag_table,
+    results.whiteness_ok (Portmanteau > alpha tai p da chon), results.lag_rule.
     """
     factors_m = ensure_monthly_freq(factors_df[[c for c in factor_cols if c in factors_df.columns]])
     macro_m = ensure_monthly_freq(macro_df)
@@ -144,15 +163,18 @@ def fit_var_model(factors_df: pd.DataFrame, macro_df: pd.DataFrame,
     data = ensure_monthly_freq(joined[ordered_cols])
     table = None
     if difference:
-        data, table = prepare_var_data(data)
+        data, table = prepare_var_data(data, force_diff=tuple(force_diff))
 
-    model = VAR(data)
-    selected = model.select_order(maxlags=maxlags)
-    lag_order = selected.aic if ic == "aic" else selected.bic
-    lag_order = max(int(lag) if lag is not None else int(lag_order), 1)
-
-    results = model.fit(lag_order)
+    sel_p, lag_table, ok = select_var_lag(data, maxlags=maxlags, ic=ic)
+    lag_order = max(int(lag) if lag is not None else sel_p, 1)
+    results = VAR(data).fit(lag_order)
     results.transform_table = table
+    results.lag_table = lag_table
+    row = lag_table[lag_table["p"] == lag_order]
+    results.whiteness_ok = bool(len(row) and row["portmanteau_p"].iloc[0] > config.VAR_PORTMANTEAU_ALPHA)
+    results.lag_rule = ("chi dinh" if lag is not None else
+                        (f"{ic.upper()} min trong cac p co Portmanteau>0.05" if ok
+                         else f"{ic.upper()} min (KHONG p nao dat Portmanteau>0.05)"))
     return results, data
 
 
@@ -170,6 +192,17 @@ def lag_diagnostics(data: pd.DataFrame, max_p: int = 12):
                          "max_abs_inv_root": float(1.0 / np.min(np.abs(r.roots)))})
         except Exception:
             continue
+    return pd.DataFrame(rows)
+
+
+def residual_ljungbox(var_results, lags: int = 12) -> pd.DataFrame:
+    """Ljung-Box tren phan du tung phuong trinh (bo sung cho Portmanteau da bien)."""
+    from statsmodels.stats.diagnostic import acorr_ljungbox
+    rows = []
+    for c in var_results.resid.columns:
+        lb = acorr_ljungbox(var_results.resid[c], lags=[lags])
+        rows.append({"equation": c, "lags": lags, "lb_stat": float(lb["lb_stat"].iloc[0]),
+                     "lb_pvalue": float(lb["lb_pvalue"].iloc[0])})
     return pd.DataFrame(rows)
 
 
@@ -247,22 +280,28 @@ def irf_with_bands(var_results, transform_table=None, periods: int = 24,
 
 def irf_robustness(factors_df, macro_df, specs, periods=24, n_boot=300):
     """
-    Chay lai VAR/IRF theo nhieu dac ta. specs: {ten: dict(ic=, lag=, order=)}.
-    Tra ve (summary_df, irf_frames): summary gom lag, on dinh, IRF Fed->Slope
-    (h=1,6,12,24, cong don neu slope sai phan) va co dung khoang 95% khong chua 0.
+    Chay lai VAR/IRF theo nhieu dac ta. specs: {ten: dict(ic=, lag=, order=, macro=, macro_cols=)}.
+    (`macro` thay macro_df; bien lam phat = cot dau cua macro_cols/macro).
+    Tra ve (summary_df, irf_frames): lag, on dinh, Portmanteau p, IRF Fed->Slope/Level va
+    Lam phat->Level (h=1,6,12,24, cong don neu sai phan) va co dung khoang 95% khong chua 0.
     """
     rows, frames = [], {}
     for name, kw in specs.items():
-        res, data = fit_var_model(factors_df, macro_df, **kw)
+        kw = dict(kw); mdf = kw.pop("macro", macro_df)
+        res, data = fit_var_model(factors_df, mdf, **kw)
+        infl = res.names[0] if res.names[0] not in ("fed_funds", "level", "slope", "curvature") else \
+            [n for n in res.names if n.startswith("cpi")][0]
         irf = irf_with_bands(res, res.transform_table, periods=periods, n_boot=n_boot)
         st = check_var_stability(res)
+        pp = res.lag_table.set_index("p")["portmanteau_p"].get(int(res.k_ar), np.nan)
         df = irf_to_frame(irf); df["spec"] = name; frames[name] = df
-        for imp, resp in [("fed_funds", "slope"), ("fed_funds", "level"), ("cpi_yoy", "level")]:
+        for imp, resp in [("fed_funds", "slope"), ("fed_funds", "level"), (infl, "level")]:
             sub = df[(df.impulse == imp) & (df.response == resp)].set_index("h")
             for h in (1, 6, 12, 24):
                 r = sub.loc[h]
                 rows.append({"spec": name, "lag": int(res.k_ar), "stable": bool(st["is_stable"]),
-                             "order": " > ".join(res.names), "impulse": imp, "response": resp, "h": h,
+                             "portmanteau_p": float(pp), "order": " > ".join(res.names),
+                             "impulse": imp, "response": resp, "h": h,
                              "irf": r["irf"], "lo": r["lo"], "hi": r["hi"],
                              "significant": bool(r["lo"] > 0 or r["hi"] < 0)})
     return pd.DataFrame(rows), pd.concat(frames.values(), ignore_index=True)

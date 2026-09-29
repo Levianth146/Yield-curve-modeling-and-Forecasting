@@ -39,7 +39,7 @@ def build_probit_dataset(yields_df: pd.DataFrame, recession_series: pd.Series,
                           condition_on_no_recession: bool = False):
     """
     spread(t) = long(t) - short(t)
-    recession_ahead(t) = 1 neu co suy thoai trong [t, t+horizon_months]
+    recession_ahead(t) = 1 neu co suy thoai trong [t+1, t+horizon_months] (rolling(h).max().shift(-h))
 
     Mac dinh dung 10Y-2Y (pham vi chinh theo PDF); doi short_col sang
     "DGS3MO" de chay robustness check theo Estrella-Mishkin goc.

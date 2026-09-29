@@ -1,0 +1,6 @@
+series,adf_stat,adf_pvalue,kpss_stat,kpss_pvalue,kpss_note,likely_stationary
+level,-1.224915808725063,0.905271723824189,1.4884224142552185,0.01,p_actual<reported (stat outside table),False
+slope,-4.01935999719604,0.00825233402978035,0.7709492797218732,0.01,p_actual<reported (stat outside table),False
+curvature,-2.6707939828653657,0.24840813765819447,0.3416982478133227,0.1,p_actual>reported (stat outside table),False
+cpi_mom_ann_raw,-3.3582951120127076,0.05721443840259493,0.301690060314945,0.1,p_actual>reported (stat outside table),False
+fed_funds,-3.6681140179340774,0.024544777368438925,0.3788664759243543,0.08626445003260591,,True

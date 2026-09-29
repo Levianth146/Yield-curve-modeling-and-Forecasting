@@ -235,6 +235,22 @@ def fetch_worldbank_data(country_codes=("VN",), indicators=None, use_cache: bool
     return df
 
 
+def compute_cpi_mom_annualized(macro_monthly: pd.DataFrame, cpi_col: str = "cpi",
+                               winsor: float = 0.0) -> pd.Series:
+    """
+    Lam phat thang quy nam (%): ((CPI_t / CPI_{t-1})^12 - 1) * 100. CPIAUCSL da dieu chinh
+    mua vu. Cung noi suy khoang trong 1 thang (2025-10) nhu compute_cpi_yoy.
+    winsor > 0: cat hai duoi tai cac phan vi `winsor` va `1 - winsor` (chuoi m/m quy nam rat
+    nhieu nhieu: -19% ... +18% quanh 2008 va COVID).
+    """
+    cpi = macro_monthly[cpi_col].interpolate(method="linear", limit=1, limit_area="inside")
+    out = ((cpi / cpi.shift(1)) ** 12 - 1) * 100
+    if winsor and winsor > 0:
+        lo, hi = out.quantile([winsor, 1 - winsor])
+        out = out.clip(lo, hi)
+    return out.rename("cpi_mom_ann")
+
+
 def compute_cpi_yoy(macro_monthly: pd.DataFrame, cpi_col: str = "cpi") -> pd.Series:
     """
     CPI YoY (%) tu chuoi CPI level theo thang. Thang thieu don le (vd 2025-10: BLS

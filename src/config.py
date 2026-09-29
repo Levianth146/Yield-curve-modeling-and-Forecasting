@@ -66,11 +66,14 @@ RECESSION_SERIES = "USRECM"  # bien nhi phan NBER (peak->trough, gom ca thang di
 NS_LAMBDA_DIEBOLD_LI_MONTHS = 0.0609
 NS_LAMBDA_FIXED = NS_LAMBDA_DIEBOLD_LI_MONTHS * 12   # = 0.7308, tau theo nam
 NS_LAMBDA_INITIAL_GUESS = NS_LAMBDA_FIXED             # seed cho NLS
-NS_MIN_OBS_PER_DAY = 9          # >= 9/11 ky han/ngay moi fit (khong ffill du lieu thieu)
+NS_MIN_OBS_PER_DAY = 9          # >= 9/10 ky han NS/ngay moi fit (khong ffill; thuc te moi ngay deu du 10)
+NLS_COMPARE_STEP = 25           # doi chieu OLS vs NLS tren moi 25-th ngay giao dich (mau phan tang toan ky)
 
 # ---------------------------------------------------------------------------
 # PROBIT / RECESSION
 # ---------------------------------------------------------------------------
+# (Hang so PROBIT_* ngay duoi day chi phuc vu thiet ke cu 2000-2026 `run_rq4_window2000` - do nhay.
+#  Thiet ke CHINH nam o khoi "PROBIT - THIET KE CHINH" cuoi file.)
 PROBIT_SHORT_COL_PRIMARY = "DGS2"    # spread chinh: 10Y - 2Y (theo pham vi PDF)
 PROBIT_LONG_COL = "DGS10"
 PROBIT_SHORT_COL_ROBUSTNESS = "DGS3MO"  # robustness check: 10Y - 3M (Estrella-Mishkin goc)
@@ -87,8 +90,12 @@ AR_FORECAST_HORIZONS = [1, 3, 6, 12]  # thang
 TRAIN_TEST_SPLIT_DATE = "2015-12-31"   # train <= date nay, test sau do (~128 diem OOS h=1; trung voi ban E2E khac: test tu 2016-01)
 TRAIN_TEST_SPLIT_RECENT = "2023-12-31"  # kiem tra phu: chi giai doan gan day (~21-32 diem OOS, power thap)
 
-VAR_MAX_LAG = 6
+VAR_MAX_LAG = 12                     # quet p = 1..12 (dung dac ta nhom)
 VAR_IC = "aic"
+VAR_INFLATION = "cpi_mom_ann"        # lam phat CHINH: CPI m/m quy nam ((CPI_t/CPI_t-1)^12 - 1)*100
+VAR_INFLATION_WINSOR = 0.02          # cat duoi/tren 2% cua lam phat m/m quy nam (ngoai le 2008, COVID); 0 = khong cat
+VAR_INFLATION_ALT = "cpi_yoy"        # lam phat doi chieu: so voi cung ky
+VAR_PORTMANTEAU_ALPHA = 0.05         # dac ta: p-value Portmanteau phai > 0.05
 
 # World Bank (phan mo rong Viet Nam)
 WB_INDICATORS = {

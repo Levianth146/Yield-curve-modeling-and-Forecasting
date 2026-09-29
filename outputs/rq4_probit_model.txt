@@ -3,8 +3,8 @@
 Dep. Variable:        recession_ahead   No. Observations:                  238
 Model:                         Probit   Df Residuals:                      236
 Method:                           MLE   Df Model:                            1
-Date:                Tue, 29 Sep 2026   Pseudo R-squ.:                  0.5593
-Time:                        17:35:01   Log-Likelihood:                -43.797
+Date:                Wed, 30 Sep 2026   Pseudo R-squ.:                  0.5593
+Time:                        02:16:56   Log-Likelihood:                -43.797
 converged:                       True   LL-Null:                       -99.382
 Covariance Type:            nonrobust   LLR p-value:                 5.429e-26
 ==============================================================================

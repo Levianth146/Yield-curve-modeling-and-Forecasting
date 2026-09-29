@@ -1,9 +1,9 @@
 [
   {
-    "series": "cpi_yoy",
-    "adf_p_level": 0.06395708258677692,
-    "transform": "diff1",
-    "adf_p_after": 0.000623419311537638
+    "series": "cpi_mom_ann",
+    "adf_p_level": 0.004939317517071823,
+    "transform": "level",
+    "adf_p_after": 0.004939317517071823
   },
   {
     "series": "fed_funds",

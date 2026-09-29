@@ -1,0 +1,30 @@
+{
+  "file": "D:\\Projects\\Yield-curve-modeling-and-Forecasting\\data\\vn_treasury_yields.csv",
+  "errors": [],
+  "warnings": [],
+  "n_days": 2274,
+  "start": "2018-01-01",
+  "end": "2026-09-29",
+  "maturities": [
+    1.0,
+    2.0,
+    3.0,
+    5.0,
+    7.0,
+    10.0,
+    15.0
+  ],
+  "n_days_ok": 2274,
+  "coverage_by_maturity": {
+    "1.0": 0.9995602462620933,
+    "2.0": 0.9991204925241864,
+    "3.0": 0.9995602462620933,
+    "5.0": 1.0,
+    "7.0": 1.0,
+    "10.0": 0.9995602462620933,
+    "15.0": 0.9780123131046614
+  },
+  "max_gap_days": 6,
+  "min_yield": 0.259,
+  "max_yield": 5.46
+}

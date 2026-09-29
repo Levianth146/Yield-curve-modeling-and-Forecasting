@@ -20,7 +20,7 @@ Mở rộng: World Bank macro Việt Nam (không đưa vào VAR chính).
 |----|---------|
 | **RQ1** | Nelson–Siegel có rút gọn cấu trúc kỳ hạn Mỹ thành Level/Slope/Curvature với độ phù hợp ra sao, và các nhân tố có phản ánh dạng chuẩn / phẳng / đảo ngược không? |
 | **RQ2** | AR(p) trên từng nhân tố có vượt Random Walk theo RMSE/MAE và Diebold–Mariano ở horizon 1/3/6/12 tháng không? |
-| **RQ3** | Có quan hệ động giữa L/S/C với CPI YoY và Fed Funds không? Cú sốc vĩ mô truyền dẫn qua IRF như thế nào? |
+| **RQ3** | Có quan hệ động giữa L/S/C với lạm phát (CPI tháng quy năm) và Fed Funds không? Cú sốc vĩ mô truyền dẫn qua IRF như thế nào? |
 | **RQ4** | Spread 10Y–2Y (Probit, horizon 12 tháng, nhãn NBER USRECM) có năng lực dự báo suy thoái không — huấn luyện đến 1998, kiểm định 2000–2025 và phép thử 2022–2026? |
 
 ### 1.3 Mục tiêu
@@ -32,7 +32,7 @@ Mở rộng: World Bank macro Việt Nam (không đưa vào VAR chính).
 ### 1.4 Phạm vi
 
 - **Không gian:** US Treasury (chính); VN chỉ robustness.  
-- **Thời gian:** 2000-01 → dữ liệu gần nhất (pipeline: yields đến 2026-09-24).  
+- **Thời gian:** 2000-01 → dữ liệu gần nhất (pipeline: yields đến 2026-09-25).  
 - **Mô hình:** Nelson–Siegel, AR, VAR+IRF, Probit.  
 - **Ngoài phạm vi:** định giá phái sinh lãi suất, credit spread doanh nghiệp, giao dịch thời gian thực, Probit đa quốc gia.
 
@@ -119,9 +119,9 @@ Gap bán hàng của đề án: giai đoạn đảo ngược kéo dài ~25 thán
 
 ### 2.4 Hypothesis development (tương ứng RQ)
 
-- **H1:** NS OLS đạt fit cao trung bình (R² cao, RMSE thấp); NLS không đảo chiều diễn giải L/S/C.  
+- **H1:** NS OLS (λ cố định) đạt fit cao trung bình (R² cao, RMSE thấp). *(Kết quả: H1 được ủng hộ cho OLS. NLS với λ tự do fit khít hơn (RMSE 5,1 so với 9,3 bp) nhưng nhân tố NLS kém ổn định và mất ý nghĩa kinh tế — tương quan với nhân tố OLS chỉ 0,3–0,55 — nên không thay OLS; xem §4.1.)*  
 - **H2:** AR cải thiện RMSE so với RW ở horizon dài hơn. *(Kết quả: không được ủng hộ có ý nghĩa thống kê trên mẫu kiểm tra 2016–2026; chỉ curvature có RMSE thấp hơn RW ở mọi horizon.)*
-- **H3:** Fed Funds Granger-cause Level/Slope; IRF Fed shock làm dịch chuyển slope/level theo hướng thắt chặt. *(Kết quả: Granger không ủng hộ chiều Fed→L/S mà ngược lại L/S và lạm phát→Fed; IRF cho slope tăng và curvature giảm có ý nghĩa sau cú sốc thắt chặt — H3 được ủng hộ một phần.)*
+- **H3:** Fed Funds Granger-cause Level/Slope; IRF Fed shock làm dịch chuyển slope/level theo hướng thắt chặt. *(Kết quả: Granger không ủng hộ chiều Fed→L/S mà ngược lại L/S/C→Fed; IRF cho slope tăng và curvature giảm có ý nghĩa sau cú sốc thắt chặt nhưng phụ thuộc thứ tự Cholesky — H3 được ủng hộ một phần.)*
 - **H4:** Hệ số spread Probit âm và có ý nghĩa; AUC ngoài mẫu 2000–2025 cao (xếp hạng đúng), nhưng xác suất không vượt hằng số theo Brier (BSS < 0); trong 2022–2026 mô hình phát tín hiệu sai kéo dài (không có suy thoái NBER).
 
 ---
@@ -133,7 +133,7 @@ Gap bán hàng của đề án: giai đoạn đảo ngược kéo dài ~25 thán
 | Series | Mã FRED | Vai trò |
 |--------|---------|---------|
 | Treasury yields | DGS3MO…DGS30 (10 kỳ hạn cho NS; DGS1MO chỉ tải, không đưa vào NS) | Đầu vào NS (ngày) |
-| CPI | CPIAUCSL | CPI YoY trong VAR |
+| CPI | CPIAUCSL | Lạm phát trong VAR: CPI m/m quy năm (chính), CPI so với cùng kỳ (đối chiếu) |
 | Fed Funds | FEDFUNDS | Chính sách tiền tệ |
 | Recession | USRECM (NBER, gồm tháng đỉnh) | Nhãn Probit |
 
@@ -144,11 +144,11 @@ Gap bán hàng của đề án: giai đoạn đảo ngược kéo dài ~25 thán
 
 ### 3.2 Empirical models
 
-**RQ1 — Nelson–Siegel.** 10 kỳ hạn (3M–30Y, bỏ 1M theo thiết kế nhóm); OLS Diebold–Li \(λ=0.0609×12=0.7308\) (kỳ hạn theo năm); chuỗi tháng = ngày giao dịch hợp lệ cuối tháng, kèm cột `rmse`, `n_maturities`; NLS L-BFGS-B có biên, nhiều điểm khởi tạo, trên mẫu 60 ngày gần đây; RMSE/R² mỗi ngày.
+**RQ1 — Nelson–Siegel.** 10 kỳ hạn (3M–30Y, bỏ 1M theo thiết kế nhóm); OLS Diebold–Li \(λ=0.0609×12=0.7308\) (kỳ hạn theo năm); chuỗi tháng = ngày giao dịch hợp lệ cuối tháng, kèm cột `rmse`, `n_maturities`; NLS L-BFGS-B có biên, nhiều điểm khởi tạo, trên mẫu phân tầng 268 ngày (mỗi 25 ngày giao dịch trên toàn kỳ 2000–2026); RMSE/R² mỗi ngày.
 
-**RQ2 — AR vs RW.** Chọn lag chỉ trên tập train bằng **BIC** (quét p=1..12; AIC là kiểm tra độ nhạy); train ≤ 2015-12-31 (test từ 2016-01; mẫu 2023-12-31 chỉ là kiểm tra phụ); expanding-window OOS; horizon 1/3/6/12; Diebold–Mariano (squared loss).
+**RQ2 — AR vs RW.** Chọn lag chỉ trên tập train bằng **BIC** (quét p=1..12; AIC là kiểm tra độ nhạy); train ≤ 2015-12-31 (test từ 2016-01; mẫu 2023-12-31 chỉ là kiểm tra phụ); expanding-window OOS; horizon 1/3/6/12; Diebold–Mariano (squared loss; phương sai dài hạn với trọng số Bartlett, hiệp phương sai γ_k chuẩn hoá cùng một cách, hiệu chỉnh HLN).
 
-**RQ3 — VAR.** Biến: `cpi_yoy`, `fed_funds`, `level`, `slope`, `curvature` (đúng thứ tự Cholesky). ADF (hằng số + xu hướng): biến có p ≥ 0.05 được lấy sai phân bậc 1 rồi kiểm lại (quy tắc nhóm). Lag theo AIC trên chuỗi đã xử lý (kết quả: \(p=3\)). Kiểm định Portmanteau, ổn định, Granger, IRF trực giao Cholesky cộng dồn với biến sai phân, khoảng tin cậy 95% bootstrap phần dư (300 lần), VIF.
+**RQ3 — VAR.** Biến: lạm phát, `fed_funds`, `level`, `slope`, `curvature` (thứ tự Cholesky này). **Lạm phát chính = CPI tháng quy năm** \(\pi_t=((CPI_t/CPI_{t-1})^{12}-1)\times100\), cắt hai đuôi 2% (winsorize) vì chuỗi rất nhiễu (−19% … +18% quanh 2008 và COVID); **đối chiếu** = CPI so với cùng kỳ (YoY) và m/m quy năm không cắt đuôi. ADF (hằng số + xu hướng): biến có p ≥ 0.05 được lấy sai phân bậc 1 rồi kiểm lại (quy tắc nhóm). **Độ trễ:** quét p = 1..12, chọn AIC nhỏ nhất trong các p có Portmanteau (12 độ trễ, hiệu chỉnh) p-value > 0.05 theo đặc tả; nếu không p nào đạt thì lấy AIC nhỏ nhất và ghi rõ. Kiểm định ổn định, Granger, IRF trực giao Cholesky (cộng dồn với biến sai phân), khoảng tin cậy 95% bootstrap phần dư (300 lần), VIF, Ljung–Box từng phương trình.
 
 **RQ4 — Probit.** \(P(R_{t,t+12}=1)=Φ(α+β·\mathrm{spread}_t)\); spread chính 10Y–2Y; robustness 10Y–3M. Mẫu tháng từ 1976-06, chỉ giữ tháng chưa suy thoái tại t và đủ 12 tháng tương lai; nhãn = 1 nếu USRECM = 1 trong t+1..t+12. **Train ≤ 1998-12, bỏ 1999, test ≥ 2000-01**; 2022–2026 báo cáo riêng. Benchmark = hằng số bằng tỷ lệ nền của train; Brier Skill Score = 1 − Brier/Brier_naive.
 
@@ -169,7 +169,19 @@ Chuỗi tháng bàn giao (`ns_factors_monthly.csv`): RMSE trung bình 9.4 bp, đ
 
 Hình dạng curve quan sát vs NS tại ngày đại diện normal / flat / inverted: `outputs/rq1_ns_fit_shapes.png` (và bản sao trong thư mục report). Chuỗi L/S/C tháng: `rq1_factors_monthly.png`.
 
-**Diễn giải:** NS mô tả tốt đường cong Mỹ trên mẫu dài (H1 được hỗ trợ). Median R² rất cao; đuôi trái R² thấp gắn các ngày cong méo cực đoan. Sau khi sửa đơn vị λ (0.0609 → 0.7308) và bỏ DGS1MO, RMSE trung bình giảm từ 0.136 xuống 0.093 và R² trung bình tăng từ 0.873 lên 0.930; NLS hội tụ 100% trên mẫu 60 ngày.
+**Diễn giải:** NS mô tả tốt đường cong Mỹ trên mẫu dài (H1 được hỗ trợ). Median R² rất cao; đuôi trái R² thấp gắn các ngày cong méo cực đoan. Sau khi sửa đơn vị λ (0.0609 → 0.7308) và bỏ DGS1MO, RMSE trung bình giảm từ 0.136 xuống 0.093 và R² trung bình tăng từ 0.873 lên 0.930.
+
+**OLS (λ cố định) so với NLS (λ tự do)** — 268 ngày phân tầng (mỗi 25 ngày giao dịch, 2000–2026; `outputs/rq1_ols_vs_nls_summary.json`):
+
+| | OLS (λ = 0,7308) | NLS (λ tự do, có biên) |
+|---|---|---|
+| RMSE trung bình | 9,3 bp | **5,1 bp** |
+| λ ước lượng | cố định | trung vị 0,45 (p10 0,16 – p90 0,87) |
+| Độ lệch chuẩn Level / Slope / Curvature | 1,25 / 1,82 / 2,24 | 2,65 / 2,99 / 5,46 |
+| Tương quan nhân tố NLS ~ OLS (L / S / C) | 0,37 / 0,55 / 0,31 | |
+| Tương quan Level với lãi suất 30Y | **0,99** | 0,38 |
+
+NLS hội tụ 100% nhưng "hội tụ" chỉ có nghĩa là thuật toán dừng, không có nghĩa nhân tố diễn giải được: vì λ tự do, nhiều bộ (β, λ) cho gần như cùng một đường cong trong dải 3M–30Y (vấn đề nhận dạng kinh điển), nên nhân tố NLS nhảy giữa các ngày (Level chỉ tương quan 0,38 với lãi suất 30Y, Curvature đổi dấu ở 19% số ngày). Vì vậy NLS chỉ dùng để chứng tỏ OLS với λ cố định là lựa chọn ổn định hơn — đúng tinh thần Diebold–Li — chứ không phải thay thế cho nó. (Trên mẫu chỉ 60 ngày gần nhất, tình trạng còn rõ hơn: λ chạm cận dưới 0,02 ở 37% số ngày.)
 
 ### 4.2 RQ2 — AR vs Random Walk
 
@@ -178,11 +190,11 @@ Thiết kế: train 2000-01 → 2015-12, test 2016-01 → 2026-08 (117–128 đi
 | Factor | h | RMSE_AR | RMSE_RW | DM p |
 |--------|---|---------|---------|------|
 | level | 1 | 0.230 | 0.229 | 0.45 |
-| level | 6 | 0.567 | 0.550 | 0.56 |
-| level | 12 | 0.786 | 0.764 | 0.77 |
+| level | 6 | 0.567 | 0.550 | 0.55 |
+| level | 12 | 0.786 | 0.764 | 0.76 |
 | slope | 1 | 0.313 | 0.311 | 0.45 |
 | slope | 6 | 0.886 | 0.870 | 0.66 |
-| slope | 12 | 1.399 | 1.392 | 0.94 |
+| slope | 12 | 1.399 | 1.392 | 0.93 |
 | curvature | 1 | 0.701 | 0.705 | 0.72 |
 | curvature | 6 | 1.568 | 1.634 | 0.48 |
 | curvature | 12 | 2.129 | 2.368 | 0.21 |
@@ -200,34 +212,53 @@ Thiết kế: train 2000-01 → 2015-12, test 2016-01 → 2026-08 (117–128 đi
 
 **Độ nhạy:**
 - *Tiêu chí lag* (`rq2_ar_vs_rw_lag_aic_sensitivity.csv`): AIC chọn AR(4)/AR(4)/AR(5) và cho kết luận tương tự (không có ý nghĩa).
-- *Mẫu kiểm tra ngắn gần đây* (train ≤ 2023-12-31, chỉ 21–32 điểm; `rq2_ar_vs_rw_split2023_recent.csv`): curvature h=6, 12 (p=0.009, 0.012) và slope h=6 (p=0.044) có vẻ AR thắng, nhưng đây là hệ quả của cửa sổ 2024–2026 ngắn, ít điểm độc lập, **không** dùng làm kết luận chính; level ở h=6/12 thì RW thắng. Chênh lệch giữa hai cách chia mẫu cho thấy kết quả RQ2 nhạy với giai đoạn kiểm tra.
+- *Mẫu kiểm tra ngắn gần đây* (train ≤ 2023-12-31, chỉ 21–32 điểm; `rq2_ar_vs_rw_split2023_recent.csv`): curvature h=6, 12 (p=0.008, 0.010) và slope h=6 (p=0.040) có vẻ AR thắng, nhưng đây là hệ quả của cửa sổ 2024–2026 ngắn, ít điểm độc lập, **không** dùng làm kết luận chính; level ở h=6/12 thì RW thắng (thống kê DM của level h=12 lên tới 8,9 với n = 21 — con số bất thường do phương sai ước lượng từ quá ít điểm chồng lấn, không nên đọc như mức ý nghĩa thật). Chênh lệch giữa hai cách chia mẫu cho thấy kết quả RQ2 nhạy với giai đoạn kiểm tra.
 
 ### 4.3 RQ3 — VAR / Granger / IRF
 
-Mẫu: 2000-01 → 2026-08 (319 tháng; CPI được tải từ 1999-01 để tính lạm phát YoY cho cả năm 2000).
+Mẫu: 2000-02 → 2026-08 (319 tháng; CPI tải từ 1999-01 để tính lạm phát m/m và YoY cho cả năm 2000). CPI tháng 10/2025 không được BLS công bố (đóng cửa chính phủ) nên được nội suy tuyến tính trên mức CPI giữa 2025-09 và 2025-11.
 
-- **Tính dừng** (ADF hằng số + xu hướng, chuỗi gốc): `cpi_yoy` p=0.067, `level` p=0.908, `curvature` p=0.250 → I(1), lấy sai phân bậc 1 (ADF sau sai phân p<0.001); `fed_funds` p=0.025 và `slope` p=0.009 → dừng, giữ nguyên mức. Kết quả trùng khớp bản E2E của thành viên khác.  
-- **VAR(4)** theo AIC; ổn định (nghiệm nghịch đảo lớn nhất 0.961 < 1, khá gần 1 nên phản ứng tắt chậm). Portmanteau p≈0 ở mọi p=1..12 (`rq3_lag_diagnostics.csv`): phần dư còn tự tương quan → diễn giải IRF thận trọng.  
-- **Lưu ý kiểm định dừng:** KPSS bác bỏ tính dừng của `slope` (p≈0,01) trong khi ADF(ct) không bác bỏ (p=0,009 → dừng); `cpi_yoy` ở sát ngưỡng (ADF p=0,064). Quy tắc nhóm dựa trên ADF nên `slope` giữ mức; kết quả IRF cần đọc cùng phần độ nhạy bên dưới. CPI tháng 10/2025 không được BLS công bố (đóng cửa chính phủ) và được nội suy tuyến tính trên mức CPI giữa 2025-09 và 2025-11.  
-- Thứ tự Cholesky: `cpi_yoy → fed_funds → level → slope → curvature`.  
-- **Granger** (p<0.05): `cpi_yoy` → `fed_funds` (p=0.024); `level`, `slope`, `curvature` → `fed_funds` (p<0.001); `slope` → `curvature` (p=0.035). Không có bằng chứng `fed_funds` → các nhân tố.  
-- VIF ≤ 2.3.
+- **Biến lạm phát.** Mô hình chính dùng CPI **tháng quy năm** (cắt 2% hai đuôi). Lý do: chuỗi YoY là trung bình trượt 12 tháng nên tự tương quan mạnh ở độ trễ dài, làm Portmanteau bác bỏ ở mọi p (p ≈ 0); chuỗi m/m quy năm loại được cấu trúc này.
+- **Tính dừng** (ADF hằng số + xu hướng, chuỗi gốc): `level` p=0,905 và `curvature` p=0,248 → I(1), lấy sai phân bậc 1 (ADF sau sai phân p<0,001); `lạm phát m/m` p=0,005, `fed_funds` p=0,025 và `slope` p=0,008 → dừng, giữ nguyên mức. KPSS bác bỏ tính dừng của `slope` (p≈0,01) trong khi ADF không bác bỏ; quy tắc nhóm dựa trên ADF nên `slope` giữ mức.
+- **Độ trễ và chẩn đoán phần dư** (`rq3_lag_diagnostics.csv`): trong 12 độ trễ chỉ **p = 4** có Portmanteau p = 0,069 > 0,05 (AIC = −9,678); các p khác p ≤ 0,025. Vì vậy **VAR(4)**. Đây cũng là p có AIC nhỏ nhất không ràng buộc (kể cả khi so AIC trên cùng độ dài mẫu), nên lựa chọn độ trễ không phụ thuộc điều kiện Portmanteau — điều kiện này chỉ xác nhận phần dư gần nhiễu trắng, và vượt ngưỡng sát (0,069). Ljung–Box từng phương trình (12 độ trễ) đều không bác bỏ: lạm phát 0,42; Fed Funds 0,15; Level 0,99; Slope 0,63; Curvature 0,77. Ổn định: nghiệm nghịch đảo lớn nhất 0,965 < 1 (khá gần 1 nên phản ứng tắt chậm). VIF ≤ 2,3.
+- **Kiểm chứng lựa chọn lạm phát** (cùng thuật toán chọn lag): m/m quy năm không cắt đuôi → p=4 nhưng Portmanteau chỉ 0,016 (không đạt); YoY → AIC giảm đến biên p=12 và Portmanteau ≈ 0 (không đạt). Nghĩa là điều kiện Portmanteau > 0,05 chỉ đạt được với m/m quy năm đã xử lý ngoại lệ; đây là lựa chọn đặc tả có chủ đích và các phiên bản khác được báo cáo song song. **Lưu ý minh bạch:** mức cắt đuôi 2% được chọn sau khi thử; độ nhạy của Portmanteau tại p = 4 theo mức cắt (`rq3_portmanteau_winsor_sensitivity.csv`):
 
-**IRF** (`rq3_irf_full.png`, `rq3_irf_table.csv`; cú sốc Cholesky 1 độ lệch chuẩn, biến sai phân được cộng dồn về mức, khoảng tin cậy 95% bootstrap):
+| Cắt đuôi hai phía | 0% | 1% | 2% (chính) | 3% | 5% |
+|---|---|---|---|---|---|
+| Portmanteau p-value (p = 4) | 0,016 | 0,048 | **0,069** | 0,080 | 0,110 |
+
+Độ trễ được chọn luôn là 4; chỉ kết luận "đạt Portmanteau > 0,05" là phụ thuộc mức cắt (đạt từ 2% trở lên).
+- Thứ tự Cholesky: lạm phát → `fed_funds` → `level` → `slope` → `curvature`.
+- **Granger** (p<0,05): `level`, `slope`, `curvature` → `fed_funds` (p<0,001); `curvature` → lạm phát (p=0,019); `curvature` → `slope` (p=0,023). Không có bằng chứng `fed_funds` → các nhân tố; lạm phát cũng không Granger-cause Fed Funds ở mô hình chính. Chiều Fed Funds → lạm phát nhạy với cách đo: có ý nghĩa với YoY (p=0,005) và m/m quy năm không cắt đuôi (p=0,003) nhưng không với bản đã cắt đuôi.
+
+**IRF** (`rq3_irf_full.png`, `rq3_irf_table.csv`, bản 3D/2D tương tác trong `outputs/interactive/`; cú sốc Cholesky 1 độ lệch chuẩn, biến sai phân được cộng dồn về mức, khoảng tin cậy 95% bootstrap):
 
 | Cú sốc → phản ứng | Ngay lập tức | Sau 12 tháng (KTC 95%) |
 |---|---|---|
-| Fed Funds → Slope | +0.13 | **+0.21** (0.08; 0.30) |
-| Fed Funds → Level | 0.00 | +0.02 (−0.03; 0.07), không ý nghĩa |
-| Fed Funds → Curvature | −0.06 | **−0.22** (−0.37; −0.05) |
-| Lạm phát → Level | +0.05 (có ý nghĩa) | +0.02, không ý nghĩa |
-| Lạm phát → Slope | −0.06 (có ý nghĩa) | −0.09, không ý nghĩa |
+| Fed Funds → Slope | +0,13 | **+0,22** (0,08; 0,31) |
+| Fed Funds → Level | 0,00 | +0,02 (−0,04; 0,07), không ý nghĩa |
+| Fed Funds → Curvature | −0,06 | **−0,24** (−0,39; −0,06) |
+| Lạm phát → Level | +0,06 (có ý nghĩa) | +0,05 (−0,01; 0,10), không ý nghĩa |
+| Lạm phát → Slope | −0,06 (có ý nghĩa) | −0,01, không ý nghĩa |
 
-Quy đổi sang cú sốc +1 điểm % của Fed Funds (chia cho độ lệch chuẩn 0.093): Slope +2.26, Level +0.21, Curvature −2.40 sau 12 tháng — trùng với số liệu của bản E2E kia.
+Quy đổi sang cú sốc +1 điểm % của Fed Funds (chia cho độ lệch chuẩn 0,093): Slope ≈ +2,3, Level ≈ +0,3, Curvature ≈ −2,6 sau 12 tháng.
 
-**Diễn giải kinh tế:** cú sốc thắt chặt chính sách làm Slope tăng bền vững (lãi suất ngắn tăng nhanh hơn dài → đường cong phẳng dần) và làm Curvature giảm; Level không phản ứng có ý nghĩa. Chiều Granger đi từ lạm phát và từ đường cong sang lãi suất Fed — phù hợp với việc Fed điều chỉnh theo lạm phát và điều kiện thị trường (kiểu quy tắc Taylor) — chứ không đi từ Fed sang đường cong. H3 vì thế được ủng hộ một phần (qua IRF, không qua Granger).
+**Diễn giải kinh tế:** cú sốc thắt chặt chính sách làm Slope tăng bền vững (lãi suất ngắn tăng nhanh hơn dài → đường cong phẳng dần) và làm Curvature giảm; Level không phản ứng có ý nghĩa. Chiều Granger đi từ đường cong sang lãi suất Fed — phù hợp với việc Fed điều chỉnh theo điều kiện thị trường (kiểu quy tắc Taylor) — chứ không đi từ Fed sang đường cong. H3 vì thế được ủng hộ một phần (qua IRF, không qua Granger).
 
-**Độ nhạy của IRF** (`outputs/rq3_irf_robustness.csv`, hàm `va.irf_robustness`): IRF Fed Funds → Slope (h = 1/6/12 tháng) có ý nghĩa và cùng dấu, cùng cỡ với mọi lựa chọn độ trễ: VAR(4) theo AIC +0,14/+0,22/+0,21; VAR(2) theo BIC +0,18/+0,24/+0,20; VAR(6) +0,11/+0,19/+0,20. Đến h = 24 khoảng tin cậy đã chứa 0. Fed Funds → Level và Lạm phát → Level không có ý nghĩa ở mọi đặc tả. Tuy nhiên kết quả **phụ thuộc hoàn toàn vào thứ tự Cholesky**: nếu đặt các nhân tố đường cong trước biến vĩ mô (đảo ngược hoặc `level, slope, curvature, cpi_yoy, fed_funds`) thì IRF Fed → Slope xấp xỉ 0 và không có ý nghĩa ở mọi kỳ; nếu đặt `fed_funds` đầu tiên thì kết quả giữ nguyên (+0,13/+0,21/+0,19). Nói cách khác, kết luận "thắt chặt chính sách làm Slope tăng" đúng khi giả định lãi suất chính sách không phản ứng tức thời với đường cong trong cùng tháng và đường cong phản ứng tức thời với chính sách; giả định này hợp lý cho lãi suất ngắn nhưng phải được nêu rõ như một giả định nhận diện, không phải kết quả thực nghiệm.
+**Độ nhạy của IRF Fed Funds → Slope** (`outputs/rq3_irf_robustness.csv`, hàm `va.irf_robustness`; h = 1/6/12 tháng):
+
+| Đặc tả | p | Portmanteau | h=1 / 6 / 12 | Ý nghĩa 95% |
+|---|---|---|---|---|
+| Cơ sở (m/m quy năm cắt 2%) | 4 | 0,069 | +0,14 / +0,23 / +0,22 | h=1,6,12 |
+| Độ trễ 2 (BIC) | 2 | 0,003 | +0,18 / +0,24 / +0,20 | h=1,6,12 |
+| Độ trễ 12 | 12 | <0,001 | +0,10 / +0,08 / +0,09 | chỉ h=1 |
+| m/m quy năm không cắt đuôi | 4 | 0,016 | +0,15 / +0,23 / +0,22 | h=1,6,12 |
+| Lạm phát YoY | 12 | <0,001 | +0,10 / +0,09 / +0,08 | h=1,6 |
+| Cholesky: `fed_funds` đứng đầu | 4 | 0,069 | +0,13 / +0,23 / +0,21 | h=1,6,12 |
+| Sai phân thêm cả `fed_funds` và `slope` (coi như I(1)) | 4 | 0,110 | +0,13 / +0,23 / +0,29 | h=1,6,12 (và cả h=24) |
+| Cholesky đảo ngược hoặc nhân tố trước vĩ mô | 4 | 0,069 | ≈ 0 (−0,01 … +0,02) | không có |
+
+Kết quả bền theo độ trễ ≤ 4, theo cách cắt đuôi và (ở h ≤ 6) theo biến lạm phát; ở h = 24 khoảng tin cậy chứa 0 (trừ đặc tả sai phân toàn bộ). Kiểm tra bổ sung: `fed_funds` (nghiệm nghịch đảo VAR 0,965) và `slope` (KPSS bác bỏ tính dừng) được ADF xếp là dừng nhưng rất dai dẳng; khi buộc sai phân cả hai, phản ứng Fed → Slope không những giữ nguyên mà còn bền hơn (+0,29 sau 12 tháng, khoảng tin cậy 0,14–0,44; lưu ý cú sốc lúc này là cú sốc lên **thay đổi** của Fed Funds nên có tác động lâu dài). Tuy nhiên nó **phụ thuộc hoàn toàn vào thứ tự Cholesky**: khi các nhân tố đường cong đứng trước biến vĩ mô thì IRF Fed → Slope xấp xỉ 0. Kết luận "thắt chặt chính sách làm Slope tăng" đúng khi giả định Fed Funds không phản ứng tức thời với đường cong trong cùng tháng; đây là giả định nhận diện, không phải kết quả thực nghiệm.
 
 ### 4.4 RQ4 — Inversion & Probit
 
@@ -252,10 +283,10 @@ Hệ số spread (10Y–2Y, train) = **−2,51** (z = −6,68; sai số chuẩn 
 
 ### 4.5 Robustness
 
-1. OLS vs NLS (mẫu gần): `outputs/rq1_ols_vs_nls.csv`.  
+1. OLS vs NLS (268 ngày phân tầng): `outputs/rq1_ols_vs_nls.csv`, `rq1_ols_vs_nls_summary.json` — NLS fit khít hơn nhưng nhân tố bất ổn (§4.1).  
 2. Spread 10Y–3M vs 10Y–2Y (bảng trên).  
-3. IRF theo lag (AIC/BIC/6) và thứ tự Cholesky: xem cuối §4.3.  
-4. VN: World Bank macro năm (`vn_worldbank_macro.csv`); **chưa** có TPCP đa kỳ hạn → không chạy NS VN.
+3. IRF theo lag (AIC/BIC/12), thứ tự Cholesky, biến lạm phát, xử lý I(1): xem cuối §4.3.  
+4. VN (RQ5): xem mục 4.7 bên dưới (TPCP VN 1–15Y từ Investing.com, 2018–2026).
 
 ### 4.6 Economic discussion (hàm ý)
 
@@ -263,6 +294,22 @@ Hệ số spread (10Y–2Y, train) = **−2,51** (z = −6,68; sai số chuẩn 
 - **S âm sâu:** thị trường giá trước nới lỏng / suy yếu tăng trưởng — nhưng 2022–24 cho thấy S âm có thể đi kèm “soft landing”.  
 - **Ngân hàng / ALM:** theo dõi slope và độ dài inversion spell, không chỉ một ngưỡng nhị phân.  
 - **Nhà đầu tư:** dùng NS factors + Probit như **chỉ báo chế độ**, kết hợp macro (Fed path, CPI), tránh giao dịch máy móc theo một lần đảo ngược.
+
+### 4.7 RQ5 — Mở rộng sang trái phiếu chính phủ Việt Nam
+
+**Dữ liệu.** Lợi suất TPCP VN ngày, 7 kỳ hạn (1, 2, 3, 5, 7, 10, 15 năm), 2018-01-01 → 2026-09-29, tải từ Investing.com (`data/vn_treasury_yields.csv`, ghép bằng `scripts/build_vn_yields.py`; báo cáo chất lượng ở `data/vn_treasury_yields_build_report.json`). Không có kỳ hạn 20Y/30Y; 105 quan sát cuối tháng. Đây là giá niêm yết tham khảo, **không phải đường cong chính thức của HNX/VBMA**.
+
+**Chất lượng dữ liệu.** Tỷ lệ ngày lợi suất không đổi so với hôm trước tăng dần: 9% (2018) → 14% (2023) → 26% (2024–25) → 37% (2026); theo kỳ hạn từ 8% (10Y) đến 27% (1Y). Số ngày mà *mọi* kỳ hạn cùng đứng yên chỉ 3–11 ngày/năm nên phần lớn là giá cũ theo từng kỳ hạn chứ không phải cả đường cong bị đóng băng. Kỳ hạn 15Y bắt đầu từ 2018-01-15 và thiếu 2% số ngày.
+
+**Ước lượng NS.** Chỉ dùng các ngày đủ cả 7 kỳ hạn (97,6% số ngày): trong 50 ngày thiếu 15Y, nhân tố ngày nhảy gấp ~2 lần bình thường (|Δ| Level 0,09 vs 0,04; Curvature 0,25 vs 0,13) do đổi tập kỳ hạn chứ không do thị trường. λ chọn bằng lưới 0,2–2,0 (tối thiểu hóa RMSE trung bình) là **0,40 năm** (US: 0,7308); RMSE trung bình 7,7 bp so với 9,9 bp nếu dùng λ của US. Nhân tố tháng: Level trung bình 4,62 (3,35–6,40), Slope −2,29, Curvature −2,87 (quy ước β₁ = ngắn − dài, Slope âm = dốc lên bình thường). Chỉ có 7 kỳ hạn trong khoảng 1–15 năm và không có đầu ngắn (<1 năm) nên Level/Slope đang ngoại suy về τ→0 và **không so sánh trực tiếp được về mức** với nhân tố US (3M–30Y).
+
+Hình: `outputs/vn_factors_monthly.png`, `outputs/vn_ns_fit_shapes.png`.
+
+**Liên hệ với US** (104 tháng trùng, cùng λ = 0,7308 cho hai nước): tương quan mức Level 0,06, Slope 0,57, Curvature 0,30; tương quan sai phân tháng 0,40 / 0,04 / −0,08. Nghĩa là chỉ có cú sốc Level chung ở mức vừa phải; Slope và Curvature của VN hầu như độc lập với US ở tần suất tháng.
+
+**AR vs RW** (train 70% đầu, kết thúc 2024-01-31; test còn 21–32 quan sát; đã tính lại độc lập RMSE h=1 khớp 3 chữ số): AR không vượt RW ở ô nào có ý nghĩa 5%. Level h=12 nghiêng về AR (RMSE 0,57 vs 0,70; p = 0,072, không có ý nghĩa), còn Slope h=12 thì RW tốt hơn (0,17 vs 0,36; p = 0,046) và Curvature không khác biệt. Độ nhạy: chỉ bỏ 2% ngày thiếu 15Y đã đưa p của Level h=12 từ 0,044 lên 0,072 — với 21–32 quan sát mỗi ô và 12 ô không hiệu chỉnh đa kiểm định, mọi p quanh 0,05 đều không đáng tin. Kết luận nhất quán với RQ2 (US): RW là chuẩn khó vượt.
+
+**Hạn chế riêng của RQ5.** (i) Dữ liệu tham khảo, giá cũ nhiều từ 2024; (ii) mẫu ngắn (105 tháng, test ≤ 32 quan sát) nên DM có sức mạnh thấp; (iii) không có VAR/Probit cho VN do thiếu chuỗi vĩ mô/suy thoái tần suất tháng cùng nguồn; (iv) λ chọn trong mẫu. Nên đối chiếu lại bằng đường cong HNX/VBMA nếu có.
 
 ---
 
@@ -272,7 +319,7 @@ Hệ số spread (10Y–2Y, train) = **−2,51** (z = −6,68; sai số chuẩn 
 
 1. **RQ1:** NS OLS (λ=0.7308, 10 kỳ hạn) phù hợp tốt (R² trung bình ~0.93, trung vị ~0.98; RMSE TB 9.3 bp, dưới ngưỡng 10 bp).  
 2. **RQ2:** Trên mẫu kiểm tra 2016–2026, AR trên nhân tố không vượt Random Walk có ý nghĩa thống kê ở nhân tố hay horizon nào (RW thắng ở h=1; hòa ở h=12); curvature là nhân tố duy nhất AR có RMSE thấp hơn RW ở mọi horizon. Kết quả 'AR thắng' trên cửa sổ 2024–2026 ngắn không vững.  
-3. **RQ3:** VAR(4) trên chuỗi đã xử lý tính dừng, ổn định; lạm phát và L/S/C Granger-cause Fed Funds (không ngược lại); IRF: cú sốc Fed Funds làm Slope tăng và Curvature giảm có ý nghĩa, Level không phản ứng; kết quả Fed→Slope bền theo độ trễ (AIC/BIC/6) nhưng phụ thuộc thứ tự Cholesky (mất ý nghĩa nếu nhân tố đường cong đứng trước biến vĩ mô); phần dư còn tự tương quan nên diễn giải thận trọng.
+3. **RQ3:** VAR(4) với lạm phát m/m quy năm (Portmanteau p = 0,069 > 0,05, ổn định); L/S/C Granger-cause Fed Funds (không ngược lại); IRF: cú sốc Fed Funds làm Slope tăng và Curvature giảm có ý nghĩa, Level không phản ứng. Kết quả Fed→Slope bền theo độ trễ, cách xử lý lạm phát và cả khi coi `fed_funds`/`slope` là I(1), nhưng phụ thuộc thứ tự Cholesky (mất ý nghĩa nếu nhân tố đường cong đứng trước biến vĩ mô).
 4. **RQ4:** Spread 10Y–2Y xếp hạng tốt rủi ro suy thoái ngoài mẫu (AUC 0,82 trên 2000–2025) nhưng xác suất chưa được hiệu chỉnh (Brier không thắng hằng số, BSS −15%), và cho tín hiệu sai kéo dài trong 2022–2026.
 
 ### 5.2 Recommendation
@@ -280,13 +327,16 @@ Hệ số spread (10Y–2Y, train) = **−2,51** (z = −6,68; sai số chuẩn 
 - Dùng NS factors làm dashboard nội bộ (level/slope/curvature + RMSE fit).  
 - Với dự báo, coi RW là chuẩn khó vượt; AR trên nhân tố chưa cho lợi thế có ý nghĩa trên mẫu 2016–2026.  
 - Đọc tín hiệu inversion kèm thời lượng spell, lạm phát và lập trường Fed — không chỉ dấu spread.  
-- Bổ sung dữ liệu TPCP VN đa kỳ hạn nếu muốn generalization check đầy đủ.
+- Đối chiếu RQ5 bằng đường cong chính thức HNX/VBMA và mở rộng kỳ hạn 20–30Y nếu có.
 
 ### 5.3 Limitation & further research
 
-- VAR chạy trên chuỗi sai phân (không xét đồng liên kết/VECM); phần dư còn tự tương quan (Portmanteau).  
+- VAR chạy trên chuỗi đã xử lý tính dừng (không xét đồng liên kết/VECM); điều kiện Portmanteau > 0,05 chỉ đạt với lạm phát m/m quy năm đã cắt đuôi 2% và p = 4 (YoY và bản không cắt đuôi không đạt); IRF phụ thuộc thứ tự Cholesky.  
 - Probit: chỉ 35 tháng dương trong train (các đợt suy thoái tương quan mạnh, số mẫu độc lập ít); nhãn 12 tháng chồng lấn nên sai số chuẩn thực tế lớn hơn; hệ số không ổn định theo thời gian; 2022–2026 không có nhãn dương nên không tính được AUC.  
-- Thiếu TPCP VN theo kỳ hạn.  
+- Thời điểm đo: `FEDFUNDS` là trung bình tháng còn nhân tố NS là giá trị cuối tháng (lệch nửa tháng), CPI công bố trễ; IRF đồng thời vì vậy chỉ mang tính gần đúng.  
+- Probit dùng USRECM (NBER công bố mốc đỉnh/đáy trễ từ vài tháng đến hơn một năm) và bộ lọc "chưa suy thoái tại t" theo dữ liệu ex-post, nên chưa phải kiểm định thời gian thực.  
+- DGS30 có quan sát liên tục cả giai đoạn 2002-02 → 2006-02 (Treasury ngừng phát hành trái phiếu 30 năm); kiểm tra: nếu coi giai đoạn này thiếu DGS30 (NS 9 kỳ hạn) thì nhân tố tháng đổi trung bình chỉ 0,006 / 0,004 / 0,018 (Level / Slope / Curvature) — không ảnh hưởng kết luận, nhưng nên đối chiếu nguồn.  
+- RQ5: nguồn Investing.com (giá tham khảo, nhiều giá cũ từ 2024), chỉ 2018–2026 và 7 kỳ hạn 1–15Y; xem §4.7.  
 - Hướng mở: dynamic \(λ\), AFNS, machine-learning benchmarks, threshold Probit / yield-curve “near-inversion” indicators.
 
 ---

@@ -119,12 +119,15 @@ def diebold_mariano_test(actual: pd.Series, pred1: pd.Series, pred2: pd.Series,
     # Khong co trong so nay, tong cac hiep phuong sai am o lag lon (thuong
     # gap khi n nho va du bao chong lan o horizon dai) co the lam phuong sai
     # uoc luong am mot cach gia tao.
-    gamma0 = np.var(d, ddof=0)
-    var_d = gamma0
+    # gamma_k = (1/n) * sum_t (d_t - dbar)(d_{t-k} - dbar): chuan hoa CUNG mot cach (chia n,
+    # tru trung binh toan mau) cho moi k, gamma_0 = var(ddof=0). (Ban truoc dung np.cov voi
+    # ddof=1 va trung binh tung mau con cho k>=1, lech nhe so voi gamma_0.)
+    dc = d - d_mean
+    var_d = float(np.dot(dc, dc)) / n
     for lag in range(1, h):
-        cov = np.cov(d[:-lag], d[lag:])[0, 1]
+        gamma_k = float(np.dot(dc[lag:], dc[:-lag])) / n
         weight = 1 - lag / h
-        var_d += 2 * weight * cov
+        var_d += 2 * weight * gamma_k
     var_d /= n
 
     if var_d <= 0:

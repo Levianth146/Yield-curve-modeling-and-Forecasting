@@ -230,7 +230,7 @@ def monthly_factors(factors_daily: pd.DataFrame, month_end_slack_days: int = 4):
     return out
 
 
-def compare_ols_vs_nls(yields_df, maturities_years, sample_size=252):
+def compare_ols_vs_nls(yields_df, maturities_years, sample_size=252, step=None):
     """
     Doi chieu OLS (lambda co dinh) vs NLS (lambda tu do, bound + multi-start)
     tren mot mau ngay (mac dinh ~1 nam giao dich) de kiem tra do vung cua
@@ -245,10 +245,41 @@ def compare_ols_vs_nls(yields_df, maturities_years, sample_size=252):
         ngay thu fit (bao gom ca ngay bi drop) - de bao cao minh bach thay vi
         am tham bo qua cac ngay khong hoi tu.
     """
-    sample = yields_df.tail(sample_size)
+    # step=None: `sample_size` ngay GAN NHAT (cach cu). step=k: lay moi k-th ngay tren TOAN mau
+    # (mau phan tang, khong phu thuoc giai doan) - dung cach nay cho ket luan ve do vung.
+    sample = yields_df.iloc[::step] if step else yields_df.tail(sample_size)
     ols = estimate_ns_timeseries(sample, maturities_years, method="ols")
     nls = estimate_ns_timeseries(sample, maturities_years, method="nls")
     nls_convergence_rate = nls.attrs.get("nls_convergence_rate", float("nan"))
 
     comparison = ols.join(nls, lsuffix="_ols", rsuffix="_nls", how="inner")
     return comparison, nls_convergence_rate
+
+
+def summarize_ols_vs_nls(comparison: pd.DataFrame, long_yield: pd.Series = None,
+                         lam_bounds=NS_NLS_LAMBDA_BOUNDS, beta_bound=NS_NLS_BETA_BOUND) -> dict:
+    """
+    Thong ke tom tat de doc `compare_ols_vs_nls`: NLS fit khit hon (RMSE) nhung nhan to co giu
+    duoc y nghia kinh te khong? Cac chi so: ty le lambda cham can duoi/tren, tuong quan va
+    khac dau giua nhan to OLS va NLS, ty le beta cham can, tuong quan level voi lai suat dai han.
+    """
+    c = comparison
+    out = {
+        "n_days": int(len(c)),
+        "rmse_ols_bp": float(100 * c["rmse_ols"].mean()), "rmse_nls_bp": float(100 * c["rmse_nls"].mean()),
+        "lam_nls_median": float(c["lam_nls"].median()),
+        "lam_nls_p10": float(c["lam_nls"].quantile(0.10)), "lam_nls_p90": float(c["lam_nls"].quantile(0.90)),
+        "share_lam_at_lower_bound": float((c["lam_nls"] <= lam_bounds[0] * 1.01).mean()),
+        "share_lam_at_upper_bound": float((c["lam_nls"] >= lam_bounds[1] * 0.99).mean()),
+    }
+    for k in ("level", "slope", "curvature"):
+        a, b = c[f"{k}_ols"], c[f"{k}_nls"]
+        out[f"{k}_corr_ols_nls"] = float(np.corrcoef(a, b)[0, 1])
+        out[f"{k}_sign_flip_share"] = float((np.sign(a) != np.sign(b)).mean())
+        out[f"{k}_sd_ols"] = float(a.std()); out[f"{k}_sd_nls"] = float(b.std())
+        out[f"{k}_share_at_beta_bound"] = float((b.abs() >= beta_bound * 0.995).mean())
+    if long_yield is not None:
+        ly = long_yield.reindex(c.index)
+        out["level_corr_long_yield_ols"] = float(np.corrcoef(c["level_ols"], ly)[0, 1])
+        out["level_corr_long_yield_nls"] = float(np.corrcoef(c["level_nls"], ly)[0, 1])
+    return out

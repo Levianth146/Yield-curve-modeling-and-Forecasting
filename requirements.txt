@@ -5,5 +5,4 @@ statsmodels
 matplotlib
 scikit-learn
 fredapi
-wbgapi
 jupyter

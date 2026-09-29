@@ -1,0 +1,18 @@
+{
+  "inflation_variable": "cpi_mom_ann_raw",
+  "is_stable": true,
+  "n_roots": 20,
+  "max_abs_inv_root": 0.9648171144808045,
+  "columns": [
+    "cpi_mom_ann_raw",
+    "fed_funds",
+    "level",
+    "slope",
+    "curvature"
+  ],
+  "lag_order": 4,
+  "lag_rule": "AIC min (KHONG p nao dat Portmanteau>0.05)",
+  "portmanteau_p_at_lag": 0.015974501942827676,
+  "whiteness_ok": false,
+  "n_obs": 315
+}

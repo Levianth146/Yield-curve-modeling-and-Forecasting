@@ -1,0 +1,32 @@
+[
+  {
+    "series": "cpi_mom_ann_raw",
+    "adf_p_level": 0.05721443840259493,
+    "transform": "diff1",
+    "adf_p_after": 3.377269533317973e-11
+  },
+  {
+    "series": "fed_funds",
+    "adf_p_level": 0.024544777368438925,
+    "transform": "level",
+    "adf_p_after": 0.024544777368438925
+  },
+  {
+    "series": "level",
+    "adf_p_level": 0.905271723824189,
+    "transform": "diff1",
+    "adf_p_after": 2.6915687004080426e-22
+  },
+  {
+    "series": "slope",
+    "adf_p_level": 0.00825233402978035,
+    "transform": "level",
+    "adf_p_after": 0.00825233402978035
+  },
+  {
+    "series": "curvature",
+    "adf_p_level": 0.24840813765819447,
+    "transform": "diff1",
+    "adf_p_after": 0.00017973564271252183
+  }
+]

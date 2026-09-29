@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src import config, data_fetch, forecasting as fc, nelson_siegel as ns
-from src import probit_recession as pr, utils, var_analysis as va
+from src import probit_recession as pr, utils, var_analysis as va, vn_extension as vnx
 
 DATA = ROOT / "data"
 OUT = ROOT / "outputs"
@@ -61,13 +61,22 @@ def run_rq1(yields: pd.DataFrame):
     factors_monthly.to_csv(DATA / "ns_factors_monthly.csv")
     factors_ols[["rmse", "r2"]].describe().to_csv(OUT / "rq1_fit_summary.csv")
 
-    comparison, nls_convergence_rate = ns.compare_ols_vs_nls(yields[codes], maturities, sample_size=60)
+    # Mau phan tang: moi NLS_COMPARE_STEP-th ngay tren TOAN mau 2000-2026 (khong chi 60 ngay gan nhat)
+    comparison, nls_convergence_rate = ns.compare_ols_vs_nls(yields[codes], maturities, step=config.NLS_COMPARE_STEP)
     comparison.to_csv(OUT / "rq1_ols_vs_nls.csv")
-    print(f"NLS convergence rate (sample of 60 days): {nls_convergence_rate:.1%}")
+    nls_sum = ns.summarize_ols_vs_nls(comparison, long_yield=yields["DGS30"])
+    nls_sum["convergence_rate"] = float(nls_convergence_rate)
+    nls_sum["sample"] = f"moi {config.NLS_COMPARE_STEP} ngay giao dich tren toan mau ({comparison.index.min().date()} -> {comparison.index.max().date()})"
+    with open(OUT / "rq1_ols_vs_nls_summary.json", "w", encoding="utf-8") as f:
+        json.dump(nls_sum, f, indent=2, ensure_ascii=False)
+    print(f"NLS convergence rate ({len(comparison)} ngay phan tang): {nls_convergence_rate:.1%}; "
+          f"lambda cham can duoi {nls_sum['share_lam_at_lower_bound']:.0%}, "
+          f"tuong quan level OLS~NLS {nls_sum['level_corr_ols_nls']:.2f}")
     with open(OUT / "rq1_nls_convergence_rate.txt", "w") as f:
         f.write(f"nls_convergence_rate={nls_convergence_rate:.4f}\n")
-        f.write("Sample: most recent 60 trading days used in compare_ols_vs_nls().\n")
-        f.write("See docs/fix_log.md (Van de #2) for methodology (bounded L-BFGS-B, multi-start).\n")
+        f.write(f"Sample: {nls_sum['sample']} ({len(comparison)} ngay).\n")
+        f.write("Hoi tu KHONG co nghia nhan to NLS on dinh/dien giai duoc - xem rq1_ols_vs_nls_summary.json.\n")
+        f.write("See docs/fix_log.md (Van de #2, #12) for methodology (bounded L-BFGS-B, multi-start).\n")
 
     dates = _pick_shape_dates(yields[codes], factors_ols)
     fig, axes = plt.subplots(1, 3, figsize=(12, 3.5), sharey=True)
@@ -149,70 +158,105 @@ def run_rq2_yields(yields: pd.DataFrame, factors_monthly: pd.DataFrame):
     return res
 
 
-def run_rq3(factors_monthly: pd.DataFrame, macro: pd.DataFrame):
-    print("=== RQ3 VAR + IRF ===")
-    macro_monthly = utils.resample_to_monthly(macro)
-    macro_monthly["cpi_yoy"] = data_fetch.compute_cpi_yoy(macro_monthly)
-    var_input = utils.ensure_monthly_freq(macro_monthly[["cpi_yoy", "fed_funds"]])
-
+def _rq3_core(factors_monthly, var_input, infl, tag=""):
+    """Chay toan bo RQ3 cho MOT bien lam phat `infl`; tag = hau to file ('' = mo hinh chinh)."""
+    sfx = f"_{tag}" if tag else ""
     data_check = factors_monthly[["level", "slope", "curvature"]].join(var_input, how="inner").dropna()
     stationarity = va.test_stationarity_all(data_check)            # ADF(ct) + KPSS tren chuoi goc
-    stationarity.to_csv(OUT / "rq3_stationarity.csv", index=False)
+    stationarity.to_csv(OUT / f"rq3_stationarity{sfx}.csv", index=False)
 
-    var_results, var_data = va.fit_var_model(factors_monthly, var_input)
+    var_results, var_data = va.fit_var_model(factors_monthly, var_input, macro_cols=(infl, "fed_funds"))
     stability = va.check_var_stability(var_results)
-    with open(OUT / "rq3_var_stability.json", "w", encoding="utf-8") as f:
+    lag_tab = var_results.lag_table
+    port_p = float(lag_tab.loc[lag_tab["p"] == var_results.k_ar, "portmanteau_p"].iloc[0])
+    with open(OUT / f"rq3_var_stability{sfx}.json", "w", encoding="utf-8") as f:
         json.dump(
             {
+                "inflation_variable": infl,
                 "is_stable": stability["is_stable"],
                 "n_roots": int(len(stability["roots"])),
                 "max_abs_inv_root": float(1.0 / np.min(np.abs(stability["roots"]))),  # phai < 1
                 "columns": list(var_data.columns),
                 "lag_order": int(var_results.k_ar),
+                "lag_rule": var_results.lag_rule,
+                "portmanteau_p_at_lag": port_p,
+                "whiteness_ok": bool(var_results.whiteness_ok),
+                "n_obs": int(var_results.nobs),
             },
             f,
             indent=2,
         )
-
-    with open(OUT / "rq3_var_transforms.json", "w", encoding="utf-8") as f:
+    with open(OUT / f"rq3_var_transforms{sfx}.json", "w", encoding="utf-8") as f:
         json.dump(var_results.transform_table.to_dict(orient="records"), f, indent=2)
-    va.lag_diagnostics(var_data).to_csv(OUT / "rq3_lag_diagnostics.csv", index=False)
+    lag_tab.to_csv(OUT / f"rq3_lag_diagnostics{sfx}.csv", index=False)
+    va.residual_ljungbox(var_results, 12).to_csv(OUT / f"rq3_ljungbox{sfx}.csv", index=False)
 
     granger = va.run_granger_causality_matrix(var_results, list(var_data.columns))
-    granger.to_csv(OUT / "rq3_granger.csv", index=False)
-
-    vif = utils.compute_vif(var_data)
-    vif.to_csv(OUT / "rq3_vif.csv", index=False)
+    granger.to_csv(OUT / f"rq3_granger{sfx}.csv", index=False)
+    utils.compute_vif(var_data).to_csv(OUT / f"rq3_vif{sfx}.csv", index=False)
 
     irf = va.irf_with_bands(var_results, var_results.transform_table, periods=24, n_boot=300)
-    va.irf_to_frame(irf).to_csv(OUT / "rq3_irf_table.csv", index=False)
-    va.plot_irf_pairs(irf, save_path=str(OUT / "rq3_irf_full.png"))
+    va.irf_to_frame(irf).to_csv(OUT / f"rq3_irf_table{sfx}.csv", index=False)
+    va.plot_irf_pairs(irf, save_path=str(OUT / f"rq3_irf_full{sfx}.png"))
     plt.close("all")
-    for impulse, response in [("fed_funds", "slope"), ("fed_funds", "level"), ("cpi_yoy", "level")]:
-        if impulse in var_data.columns and response in var_data.columns:
+    if not tag:
+        for impulse, response in [("fed_funds", "slope"), ("fed_funds", "level"), (infl, "level")]:
             va.plot_irf_pairs(irf, pairs=[(impulse, response)],
                               save_path=str(OUT / f"rq3_irf_{impulse}_to_{response}.png"))
             plt.close("all")
-
-    var_data.to_csv(DATA / "var_input_data.csv")
-    with open(OUT / "rq3_var_summary.txt", "w", encoding="utf-8") as f:
+    var_data.to_csv(DATA / f"var_input_data{sfx}.csv")
+    with open(OUT / f"rq3_var_summary{sfx}.txt", "w", encoding="utf-8") as f:
         f.write(str(var_results.summary()))
+    print(f"  [{infl}] stable={stability['is_stable']} lag={var_results.k_ar} "
+          f"portmanteau_p={port_p:.4f} ({var_results.lag_rule})")
+    return var_results, var_data, stationarity, granger, irf
 
-    # Robustness: lag (AIC/BIC/6), thu tu Cholesky
-    base = ["cpi_yoy", "fed_funds", "level", "slope", "curvature"]
+
+def run_rq3(factors_monthly: pd.DataFrame, macro: pd.DataFrame):
+    print("=== RQ3 VAR + IRF ===")
+    macro_monthly = utils.resample_to_monthly(macro)
+    macro_monthly["cpi_mom_ann"] = data_fetch.compute_cpi_mom_annualized(
+        macro_monthly, winsor=config.VAR_INFLATION_WINSOR)              # chinh
+    macro_monthly["cpi_mom_ann_raw"] = data_fetch.compute_cpi_mom_annualized(macro_monthly)  # khong cat
+    macro_monthly["cpi_yoy"] = data_fetch.compute_cpi_yoy(macro_monthly)
+    main, alt = config.VAR_INFLATION, config.VAR_INFLATION_ALT
+    in_main = utils.ensure_monthly_freq(macro_monthly[[main, "fed_funds"]])
+    in_alt = utils.ensure_monthly_freq(macro_monthly[[alt, "fed_funds"]])
+    in_raw = utils.ensure_monthly_freq(macro_monthly[["cpi_mom_ann_raw", "fed_funds"]])
+
+    out = _rq3_core(factors_monthly, in_main, main)            # mo hinh chinh
+    _rq3_core(factors_monthly, in_alt, alt, tag="yoy")         # doi chieu: cung ky
+    _rq3_core(factors_monthly, in_raw, "cpi_mom_ann_raw", tag="mom_raw")  # doi chieu: m/m khong cat
+
+    # Robustness: lag, thu tu Cholesky, bien lam phat
+    base = [main, "fed_funds", "level", "slope", "curvature"]
     specs = {
-        "co so (AIC)": dict(),
-        "BIC": dict(ic="bic"),
-        "lag=6": dict(lag=6),
+        "co so (AIC + Portmanteau)": dict(macro_cols=(main, "fed_funds")),
+        "lag=2 (BIC khong rang buoc)": dict(lag=2),
+        "lag=12": dict(lag=12),
         "Cholesky dao nguoc": dict(order=base[::-1]),
-        "Cholesky: nhan to truoc vi mo": dict(order=["level", "slope", "curvature", "cpi_yoy", "fed_funds"]),
-        "Cholesky: fed_funds dau": dict(order=["fed_funds", "cpi_yoy", "level", "slope", "curvature"]),
+        "Cholesky: nhan to truoc vi mo": dict(order=["level", "slope", "curvature", main, "fed_funds"]),
+        "Cholesky: fed_funds dau": dict(order=["fed_funds", main, "level", "slope", "curvature"]),
+        "Lam phat so voi cung ky (YoY)": dict(macro=in_alt, macro_cols=(alt, "fed_funds")),
+        "M/M quy nam KHONG winsorize": dict(macro=in_raw, macro_cols=("cpi_mom_ann_raw", "fed_funds")),
+        "Sai phan them fed_funds va slope (I(1))": dict(force_diff=("fed_funds", "slope")),
     }
-    rob, _ = va.irf_robustness(factors_monthly, var_input, specs)
+    rob, _ = va.irf_robustness(factors_monthly, in_main, specs)
     rob.to_csv(OUT / "rq3_irf_robustness.csv", index=False)
 
-    print(f"  stable={stability['is_stable']} lag={var_results.k_ar} cols={list(var_data.columns)}")
-    return var_results, var_data, stationarity, granger
+    # Do nhay cua Portmanteau voi muc cat duoi (winsor) - ngưỡng 2% duoc chon SAU khi thay ket qua
+    rows = []
+    for w in (0.0, 0.01, 0.02, 0.03, 0.05):
+        m_w = macro_monthly[["fed_funds"]].copy()
+        m_w["x"] = data_fetch.compute_cpi_mom_annualized(macro_monthly, winsor=w)
+        r_w, _ = va.fit_var_model(factors_monthly, utils.ensure_monthly_freq(m_w[["x", "fed_funds"]]),
+                                  macro_cols=("x", "fed_funds"))
+        lt = r_w.lag_table.set_index("p")
+        rows.append({"winsor": w, "lag": int(r_w.k_ar), "portmanteau_p": float(lt.loc[r_w.k_ar, "portmanteau_p"]),
+                     "whiteness_ok": bool(r_w.whiteness_ok), "aic_min_lag": int(lt["AIC"].idxmin()),
+                     "n_lags_passing": int((lt["portmanteau_p"] > config.VAR_PORTMANTEAU_ALPHA).sum())})
+    pd.DataFrame(rows).to_csv(OUT / "rq3_portmanteau_winsor_sensitivity.csv", index=False)
+    return out[:4]
 
 
 def run_rq4(spreads: pd.DataFrame, recession_full: pd.Series):
@@ -282,6 +326,11 @@ def run_rq4(spreads: pd.DataFrame, recession_full: pd.Series):
         json.dump(summary, f, indent=2, ensure_ascii=False)
     with open(OUT / "rq4_probit_model.txt", "w", encoding="utf-8") as f:
         f.write(str(res.summary()))
+
+    oos = pd.DataFrame({"prob_fixed": p_fixed, "prob_expanding": p_exp}).join(
+        full[["spread", "recession", "recession_ahead"]], how="left")
+    oos.index = oos.index.astype(str); oos.index.name = "month"
+    oos.to_csv(OUT / "rq4_oos_probabilities.csv")
 
     # Hinh 1: xac suat OOS (2000-2025) vs ty le nen, to bong giai doan suy thoai
     test = sample.loc[config.PROBIT_MAIN_TEST_START:]
@@ -431,6 +480,76 @@ def run_rq4_window2000(yields: pd.DataFrame, recession: pd.Series):
     return summary, inversions, compare
 
 
+def run_vn_ns():
+    """RQ5: Nelson-Siegel + AR vs RW tren loi suat TPCP VN (data/vn_treasury_yields.csv)."""
+    y, rep = vnx.load_vn_yields()
+    with open(OUT / "vn_data_validation.json", "w", encoding="utf-8") as f:
+        json.dump(rep, f, indent=2, ensure_ascii=False)
+    for w in rep["warnings"]:
+        print("  [VN warn]", w)
+    if rep["errors"]:
+        raise ValueError("; ".join(rep["errors"]))
+    # Ngay thieu 1 ky han (vd 15Y) lam nhan to nhay gap doi -> neu >= 95% ngay day du thi chi fit ngay day du
+    n_full = int(y.notna().sum(axis=1).max())
+    full_share = float((y.notna().sum(axis=1) == n_full).mean())
+    min_obs = n_full if full_share >= 0.95 else vnx.VN_MIN_MATURITIES_PER_DAY
+    lam, grid = vnx.select_lambda(y, min_obs=min_obs)
+    grid.to_csv(OUT / "vn_lambda_grid.csv", index=False)
+    daily = vnx.fit_ns_daily(y, lam, min_obs=min_obs)
+    daily_us = vnx.fit_ns_daily(y, config.NS_LAMBDA_FIXED, min_obs=min_obs)
+    daily.to_csv(OUT / "vn_ns_factors_daily.csv")
+    monthly = vnx.monthly_last(daily)
+    monthly.to_csv(OUT / "vn_ns_factors_monthly.csv")
+    out = {"vn_treasury_ns": True, "vn_lambda_selected": lam, "vn_rmse_mean_selected": float(daily["rmse"].mean()),
+           "vn_rmse_mean_us_lambda": float(daily_us["rmse"].mean()), "vn_months": int(len(monthly)),
+           "vn_min_maturities_per_day": min_obs, "vn_full_day_share": full_share, "vn_start": rep["start"], "vn_end": rep["end"], "vn_maturities": rep["maturities"]}
+
+    # Hinh: 3 ngay dai dien + nhan to thang
+    slope = daily["slope"]
+    picks = {"normal": slope.idxmin(), "flat": slope.abs().idxmin(), "inverted": slope.idxmax()}
+    tau = np.array(rep["maturities"])
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.5), sharey=True)
+    for ax, (lab, d) in zip(axes, picks.items()):
+        row = y.loc[d]
+        b0, b1, b2 = daily.loc[d, ["level", "slope", "curvature"]]
+        tt = np.linspace(tau.min(), tau.max(), 100)
+        ax.scatter(tau, row.values, label="Observed", zorder=3)
+        ax.plot(tt, ns.nelson_siegel(tt, b0, b1, b2, lam), label="NS fit")
+        ax.set_title(f"VN {lab}\n{d.date()}"); ax.set_xlabel("Maturity (years)"); ax.legend(fontsize=8)
+    axes[0].set_ylabel("Yield (%)"); fig.tight_layout(); fig.savefig(OUT / "vn_ns_fit_shapes.png", dpi=150); plt.close(fig)
+    fig, ax = plt.subplots(figsize=(10, 4)); monthly[["level", "slope", "curvature"]].plot(ax=ax)
+    ax.set_title(f"VN Nelson-Siegel factors (month-end, lambda={lam})"); fig.tight_layout()
+    fig.savefig(OUT / "vn_factors_monthly.png", dpi=150); plt.close(fig)
+
+    # So voi US (nhan to thang cua repo, lambda US) - tuong quan trong phan chong lan
+    try:
+        us = pd.read_csv(DATA / "ns_factors_monthly.csv", index_col=0)
+        us.index = pd.PeriodIndex(us.index, freq="M")
+        vm = monthly[["level", "slope", "curvature"]].copy(); vm.index = vm.index.to_period("M")
+        vm_us = vnx.monthly_last(daily_us)[["level", "slope", "curvature"]]; vm_us.index = vm_us.index.to_period("M")
+        j = vm_us.join(us[["level", "slope", "curvature"]], how="inner", lsuffix="_vn", rsuffix="_us")
+        out["vn_us_overlap_months"] = int(len(j))
+        if len(j) >= 24:
+            for k in ("level", "slope", "curvature"):
+                out[f"corr_vn_us_{k}"] = float(j[f"{k}_vn"].corr(j[f"{k}_us"]))
+                out[f"corr_vn_us_{k}_diff"] = float(j[f"{k}_vn"].diff().corr(j[f"{k}_us"].diff()))
+    except Exception as exc:
+        out["vn_us_compare_error"] = str(exc)
+
+    # AR vs RW neu du mau (train = 70% dau)
+    mp = utils.ensure_monthly_freq(monthly[["level", "slope", "curvature"]])
+    if len(mp) >= 72:
+        split = str(mp.index[int(len(mp) * 0.7) - 1].end_time.date())
+        res = pd.concat([fc.run_ar_vs_rw_pipeline(mp, c, rolling=True, split_date=split) for c in ["level", "slope", "curvature"]],
+                        ignore_index=True)
+        res.to_csv(OUT / "vn_ar_vs_rw.csv", index=False)
+        out["vn_ar_split"] = split
+    else:
+        out["vn_ar_skipped"] = f"chi {len(mp)} thang (< 72)"
+    print("  VN NS:", {k: (round(v, 4) if isinstance(v, float) else v) for k, v in out.items() if not isinstance(v, list)})
+    return out
+
+
 def run_vn():
     print("=== VN extension (World Bank) ===")
     notes = {
@@ -438,8 +557,8 @@ def run_vn():
         "world_bank": False,
         "vn_treasury_ns": False,
         "limitation": (
-            "Chua co file loi suat TPCP VN da ky han (HNX/VBMA) trong repo; "
-            "chi chay World Bank macro hang nam. Khong dua WB vao VAR chinh."
+            "Neu chua co data/vn_treasury_yields.csv thi chi chay World Bank macro hang nam "
+            "(khong dua WB vao VAR chinh); neu co, run_vn_ns them NS/AR cho TPCP VN."
         ),
     }
     try:
@@ -454,15 +573,14 @@ def run_vn():
         notes["world_bank_error"] = str(exc)
         print(f"  WB failed: {exc}")
 
-    vn_path = DATA / "vn_treasury_yields.csv"
-    if vn_path.exists():
-        vn_yields = pd.read_csv(vn_path, index_col=0, parse_dates=True)
-        maturities = [float(c) for c in vn_yields.columns]
-        vn_factors = ns.estimate_ns_timeseries(vn_yields, maturities, method="nls")
-        vn_factors.to_csv(OUT / "vn_ns_factors.csv")
-        notes["vn_treasury_ns"] = True
+    if vnx.VN_YIELDS_PATH.exists():
+        try:
+            notes.update(run_vn_ns())
+        except Exception as exc:                      # loi du lieu VN khong duoc lam hong pipeline US
+            notes["vn_treasury_error"] = str(exc)
+            print(f"  VN NS failed: {exc}")
     else:
-        print("  No data/vn_treasury_yields.csv — skip VN NS")
+        print("  No data/vn_treasury_yields.csv - skip VN NS (xem docs/vn_data_guide.md)")
 
     with open(OUT / "vn_extension_notes.json", "w", encoding="utf-8") as f:
         json.dump(notes, f, indent=2, ensure_ascii=False)
@@ -489,6 +607,11 @@ def main():
     run_rq4(spreads, recession_full)
     run_rq4_window2000(yields, recession)
     run_vn()
+    try:
+        import make_interactive
+        make_interactive.main()
+    except Exception as exc:  # bieu do tuong tac khong lam hong pipeline chinh
+        print(f"  (bo qua bieu do tuong tac: {exc})")
     print("DONE. See data/ and outputs/")
 
 
