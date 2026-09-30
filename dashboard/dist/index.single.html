@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Yield Curve Lab (single)</title>
+<style>:root {
+  --paper: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink: #0b0b0b;
+  --text: var(--ink);
+  --accent: var(--series-slope);
+  --recession: #6b6b6b;
+  --fragile: var(--status-warn);
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --grid: #e1e0d9;
+  --hairline: #d4d3cb;
+
+  --series-level: #2a78d6;
+  --series-slope: #eb6834;
+  --series-curv: #1baf7a;
+  --series-default: #0b0b0b;
+
+  --status-good: #1baf7a;
+  --status-warn: #c47a00;
+  --status-serious: #b83232;
+  --status-critical: #7a1f1f;
+
+  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Consolas", monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --radius-sm: 2px;
+  --transition: 120ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --paper: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #898781;
+  --grid: #2a2a28;
+  --hairline: #333331;
+  --series-level: #3987e5;
+  --series-slope: #d95926;
+  --series-curv: #199e70;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: 0ms;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+h1, h2, h3, .ledger-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: var(--series-level);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.nav-benches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.nav-benches a {
+  padding: var(--space-2) 0;
+  color: var(--ink-secondary);
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-size: 0.8125rem;
+}
+
+.nav-benches a.active {
+  color: var(--ink);
+  background: transparent;
+  font-weight: 600;
+  border-bottom-color: var(--ink);
+}
+
+.layout-bench {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.panel-controls {
+  grid-row: 1 / span 2;
+  border-right: 1px solid var(--hairline);
+  padding-right: var(--space-3);
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+  overflow: auto;
+}
+
+.panel-main {
+  min-height: 320px;
+  grid-column: 2;
+}
+
+.panel-ledger {
+  grid-column: 2;
+  border-left: none;
+  border-top: 1px solid var(--hairline);
+  padding-left: 0;
+  padding-top: var(--space-3);
+  font-size: 0.8125rem;
+}
+
+.verdict {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  margin: 0 0 var(--space-2);
+  max-width: 42rem;
+}
+
+.claim-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: var(--space-2);
+  font-weight: 600;
+}
+
+.claim-supported .claim-badge { color: var(--status-good); }
+.claim-fragile .claim-badge { color: var(--status-warn); }
+.claim-notSupported .claim-badge { color: var(--status-serious); }
+
+@media (max-width: 960px) {
+  .layout-bench {
+    grid-template-columns: 1fr;
+  }
+  .panel-controls {
+    grid-row: auto;
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: var(--space-3);
+  }
+  .panel-main, .panel-ledger {
+    grid-column: 1;
+  }
+}
+
+.control-group {
+  margin-bottom: var(--space-3);
+}
+
+.control-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--ink);
+}
+
+.segmented {
+  display: flex;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.segmented button {
+  flex: 1;
+  border: none;
+  background: var(--surface);
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--ink-secondary);
+}
+
+.segmented button.active {
+  background: var(--grid);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.app-footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--hairline);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+
+.banner-selftest-fail {
+  background: var(--status-critical);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  text-align: center;
+  font-weight: 600;
+}
+
+.claim-supported { color: var(--status-good); }
+.claim-fragile { color: var(--status-warn); }
+.claim-not { color: var(--status-serious); }
+
+.chart-caption {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: var(--space-2);
+}
+
+.chart-title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  margin: 0 0 var(--space-2);
+}
+
+.hidden-table {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.toolbar button {
+  font-size: 0.75rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.toolbar button:focus-visible,
+.segmented button:focus-visible {
+  outline: 2px solid var(--series-level);
+  outline-offset: 2px;
+}
+
+.presentation-mode .panel-controls,
+.presentation-mode .panel-ledger,
+.presentation-mode .nav-benches {
+  display: none;
+}
+
+.viz-svg {
+  width: 100%;
+  background: var(--surface);
+}
+
+.viz-svg line.gridline {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+
+.viz-svg .axis text {
+  fill: var(--ink-muted);
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+.viz-svg .axis line,
+.viz-svg .axis path {
+  stroke: var(--hairline);
+}
+
+.viz-svg .series-line {
+  fill: none;
+  stroke-width: 2;
+}
+
+.viz-svg .obs-dot {
+  fill: var(--series-level);
+}
+
+.viz-svg .fit-line {
+  stroke: var(--series-default);
+}
+
+.residual-bar {
+  stroke-width: 1;
+}
+
+.recession-band {
+  fill: rgba(120, 120, 120, 0.18);
+}
+
+.spec-curve-dot {
+  stroke: none;
+  opacity: 0.55;
+}
+
+.spec-curve-dot.current {
+  opacity: 1;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.dial-track {
+  fill: var(--grid);
+  height: 8px;
+}
+
+.ledger-item {
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.quality-heatmap rect {
+  stroke: var(--surface);
+  stroke-width: 1;
+}
+</style>
+</head>
+<body>
+<!-- Single-file build 2026-09-30T06:36:50.323Z. Open via http server for full Lab (workers). file://: static shells only. -->
+<header class="app-header"><h1>Yield Curve Lab</h1>
+<p class="mono">Bản single-file tĩnh. Chạy <code>python -m http.server</code> trong <code>dashboard/</code> để dùng engine đầy đủ.</p>
+</header>
+<main style="padding:1.5rem;max-width:720px;margin:0 auto">
+<p>Mở Lab đầy đủ: <a href="../index.html">index.html</a> qua HTTP.</p>
+<p>Golden gate: <code>node dashboard/tests/run_all.mjs</code></p>
+</main>
+</body>
+</html>

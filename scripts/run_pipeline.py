@@ -588,6 +588,13 @@ def run_vn():
 
 
 def main():
+    if "--check" in sys.argv:
+        import subprocess
+
+        print("=== Dashboard parity check ===")
+        rc = subprocess.call([sys.executable, str(ROOT / "scripts" / "check_dashboard_parity.py")], cwd=str(ROOT))
+        sys.exit(rc)
+
     print("Fetching FRED data...")
     use_cache = "--refresh" not in sys.argv
     print("  (cache-first)" if use_cache else "  (--refresh: tai lai tu FRED, dung FRED_API_KEY neu co)")
@@ -612,6 +619,17 @@ def main():
         make_interactive.main()
     except Exception as exc:  # bieu do tuong tac khong lam hong pipeline chinh
         print(f"  (bo qua bieu do tuong tac: {exc})")
+    if "--no-dashboard" not in sys.argv:
+        try:
+            import subprocess
+
+            print("=== Export Yield Curve Lab data ===")
+            cmd = [sys.executable, str(ROOT / "scripts" / "export_dashboard_data.py")]
+            if "--skip-irf-export" in sys.argv:
+                cmd.append("--skip-irf")
+            subprocess.check_call(cmd, cwd=str(ROOT))
+        except Exception as exc:
+            print(f"  (bo qua export dashboard: {exc})")
     print("DONE. See data/ and outputs/")
 
 

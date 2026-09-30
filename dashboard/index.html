@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yield Curve Lab</title>
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/bench.css" />
+  <link rel="stylesheet" href="vendor/katex/katex.min.css" />
+</head>
+<body>
+  <div id="selftest-banner" class="banner-selftest-fail" hidden></div>
+  <header class="app-header">
+    <div class="brand">
+      <h1 id="app-title">Yield Curve Lab</h1>
+      <span class="sub" id="app-sub" hidden></span>
+    </div>
+    <div class="toolbar">
+      <button type="button" id="btn-lang" aria-label="Switch language">EN</button>
+      <button type="button" id="btn-theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </header>
+  <div class="nav-wrap"><nav class="nav-benches" id="nav" aria-label="Benches"></nav></div>
+  <main id="main" class="layout-bench">
+    <section id="hero" class="hero"></section>
+    <aside class="panel-controls" id="controls" aria-label="Controls"></aside>
+    <section class="panel-main" id="viz" aria-live="polite"></section>
+  </main>
+  <footer class="app-footer mono" id="footer">Đang tải manifest…</footer>
+  <script src="vendor/d3.v7.min.js"></script>
+  <script src="vendor/katex/katex.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

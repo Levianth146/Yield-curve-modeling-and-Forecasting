@@ -332,7 +332,7 @@ Hình: `outputs/vn_factors_monthly.png`, `outputs/vn_ns_fit_shapes.png`.
 ### 5.3 Limitation & further research
 
 - VAR chạy trên chuỗi đã xử lý tính dừng (không xét đồng liên kết/VECM); điều kiện Portmanteau > 0,05 chỉ đạt với lạm phát m/m quy năm đã cắt đuôi 2% và p = 4 (YoY và bản không cắt đuôi không đạt); IRF phụ thuộc thứ tự Cholesky.  
-- Probit: chỉ 35 tháng dương trong train (các đợt suy thoái tương quan mạnh, số mẫu độc lập ít); nhãn 12 tháng chồng lấn nên sai số chuẩn thực tế lớn hơn; hệ số không ổn định theo thời gian; 2022–2026 không có nhãn dương nên không tính được AUC.  
+- Probit: chỉ 35 tháng dương trong train đến từ **3 đợt suy thoái** (1980, 1981–82, 1990–91 tùy mốc USRECM; các tháng dương tương quan mạnh nên số mẫu độc lập ít); nhãn 12 tháng chồng lấn nên sai số chuẩn thực tế lớn hơn; hệ số không ổn định theo thời gian; 2022–2026 không có nhãn dương nên không tính được AUC.  
 - Thời điểm đo: `FEDFUNDS` là trung bình tháng còn nhân tố NS là giá trị cuối tháng (lệch nửa tháng), CPI công bố trễ; IRF đồng thời vì vậy chỉ mang tính gần đúng.  
 - Probit dùng USRECM (NBER công bố mốc đỉnh/đáy trễ từ vài tháng đến hơn một năm) và bộ lọc "chưa suy thoái tại t" theo dữ liệu ex-post, nên chưa phải kiểm định thời gian thực.  
 - DGS30 có quan sát liên tục cả giai đoạn 2002-02 → 2006-02 (Treasury ngừng phát hành trái phiếu 30 năm); kiểm tra: nếu coi giai đoạn này thiếu DGS30 (NS 9 kỳ hạn) thì nhân tố tháng đổi trung bình chỉ 0,006 / 0,004 / 0,018 (Level / Slope / Curvature) — không ảnh hưởng kết luận, nhưng nên đối chiếu nguồn.  

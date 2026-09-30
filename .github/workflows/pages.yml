@@ -1,0 +1,49 @@
+# Publish dashboard/ to GitHub Pages — enable after human review (see dashboard/README.md).
+name: Yield Curve Lab Pages
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths: [dashboard/**]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+      - name: Dashboard parity gate
+        run: python scripts/check_dashboard_parity.py
+
+  deploy:
+    if: false # set true when approved to publish
+    needs: parity
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard
+      - id: deployment
+        uses: actions/deploy-pages@v4
