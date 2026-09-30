@@ -16,6 +16,8 @@ const I1 = ["adf", "force_fed_slope"];
 const cellOf = (cfg, imp, res, h) => cfg.irf.find((r) => r.impulse === imp && r.response === res && r.h === h);
 const varLabel = (id, lang) => label("var." + id, lang);
 
+const lcFirst = (x) => x.charAt(0).toLowerCase() + x.slice(1);
+
 export async function mountIrf(ctx) {
   const { state, data, hero: heroEl, controls, viz, lang, persist, isDefaults, resetToDefaults } = ctx;
   const vi = lang !== "en", s = state.irf;
@@ -38,12 +40,16 @@ export async function mountIrf(ctx) {
   const chg = () => { persist(); update(); };
   if (!s.lagMode) s.lagMode = "p4";
 
-  const varOpts = VAR_KEYS.map((id) => ({ id, label: varLabel(id, lang) }));
+  // Câu hỏi nghiên cứu: cú sốc vĩ mô (lạm phát, lãi suất Fed) tác động lên ba nhân tố của đường cong.
+  const SHOCKS = ["fed_funds", "cpi_mom_ann"], RESPONSES = ["level", "slope", "curvature"];
+  if (!SHOCKS.includes(s.impulse)) s.impulse = "fed_funds";
+  if (!RESPONSES.includes(s.response)) s.response = "slope";
+  s.shock = 1; // cú sốc cố định bằng một độ lệch chuẩn, đúng phương pháp của đề án
+  const opt = (ids) => ids.map((id) => ({ id, label: varLabel(id, lang) }));
   controls.append(
-    chips({ label: vi ? "Cú sốc từ" : "Shock to", options: varOpts, value: s.impulse, onPick: (v) => { s.impulse = v; chg(); } }),
-    chips({ label: vi ? "Phản ứng của" : "Response of", options: varOpts, value: s.response, onPick: (v) => { s.response = v; chg(); } }),
-    slider({ label: vi ? "Độ lớn cú sốc" : "Shock size", min: 0.5, max: 3, step: 0.5, value: s.shock, format: (v) => v + "σ", onInput: (v) => { s.shock = v; chg(); } }),
-    slider({ label: vi ? "Chân trời (tháng)" : "Horizon (months)", min: 1, max: 24, value: s.h, format: (v) => v + "M", onInput: (v) => { s.h = v; chg(); } }),
+    chips({ label: vi ? "Cú sốc từ" : "Shock to", options: opt(SHOCKS), value: s.impulse, onPick: (v) => { s.impulse = v; chg(); } }),
+    chips({ label: vi ? "Phản ứng của" : "Response of", options: opt(RESPONSES), value: s.response, onPick: (v) => { s.response = v; chg(); } }),
+    slider({ label: vi ? "Số tháng sau cú sốc" : "Months after the shock", min: 1, max: 24, value: s.h, format: (v) => v + (vi ? " tháng" : "M"), onInput: (v) => { s.h = v; chg(); } }),
   );
   const specBox = el("div");
   const mk = (lab, ids, key, prefix) => chips({
@@ -53,19 +59,22 @@ export async function mountIrf(ctx) {
     onPick: (v) => { s[key] = v; chg(); },
   });
   specBox.append(
+    el("p", { class: "fig-note", html: vi
+      ? "Mặc định là mô hình chính của đề án (đánh dấu “chính”). Mỗi nhóm dưới đây thay đổi một giả định của mô hình; biểu đồ “Độ bền qua các cấu hình” bên dưới cho thấy kết quả dưới toàn bộ 288 cách kết hợp."
+      : "Defaults are the project's main model (marked “main”). Each group changes one modelling assumption; the robustness chart below shows the result under all 288 combinations." }),
     mk(vi ? "Thứ tự Cholesky" : "Cholesky order", PRESETS, "preset", "irf.preset"),
     mk(vi ? "Số độ trễ" : "Lags", LAGS, "lagMode", "irf.lag"),
-    mk(vi ? "Lạm phát" : "Inflation", INFL, "infl", "irf.infl"),
-    mk("I(1)", I1, "i1", "irf.i1"),
+    mk(vi ? "Cách đo lạm phát" : "Inflation measure", INFL, "infl", "irf.infl"),
+    mk(vi ? "Xử lý tính dừng" : "Stationarity treatment", I1, "i1", "irf.i1"),
   );
-  controls.append(drawer(vi ? "Đặc tả mô hình (288 cấu hình)" : "Model specification (288 configs)", specBox));
+  controls.append(drawer(vi ? "Kiểm định độ bền: đổi lựa chọn mô hình" : "Robustness: change model choices", specBox));
   const rst = resetLink(lang, !isDefaults(), () => resetToDefaults());
   if (rst) controls.append(rst);
 
   const fPath = figure({ title: "​", sub: "", height: 300, margin: { r: 70 } });
   const fShock = figure({
-    title: vi ? "Cú sốc là gì? (Fed → Fed)" : "What is the shock? (Fed → Fed)",
-    sub: vi ? "Phản ứng của chính Fed funds trước cú sốc 1σ của nó." : "Fed funds response to its own 1σ shock.",
+    title: vi ? "Độ lớn của cú sốc lãi suất Fed" : "What is the shock? (Fed → Fed)",
+    sub: vi ? "Phản ứng của chính lãi suất Fed sau cú sốc bằng một độ lệch chuẩn; giá trị tại tháng 0 là độ lớn của cú sốc." : "Fed funds response to its own 1σ shock.",
     height: 220, margin: { r: 20 },
   });
   const fSpec = figure({ title: "​", sub: "", height: 300, margin: { r: 20 } });
@@ -80,7 +89,7 @@ export async function mountIrf(ctx) {
     fSpec.root, captionBelow,
     el("div", { style: "height:24px" }),
     el("h3", { class: "fig-title" }, vi ? "Cùng cú sốc, mọi biến phản ứng" : "Same shock, every response"),
-    el("p", { class: "fig-sub" }, vi ? "Biến đang chọn chiếm hai cột. Vùng tô: CI 95%." : "Selected response spans two columns. Band: 95% CI."),
+    el("p", { class: "fig-sub" }, vi ? "Biến đang chọn được hiển thị rộng hơn. Vùng tô: khoảng tin cậy 95%." : "Selected response spans two columns. Band: 95% CI."),
     fMulti, stepsHost, formulaHost, explainHost,
   );
   const T = tip();
@@ -121,18 +130,22 @@ export async function mountIrf(ctx) {
     const rName = varLabel(s.response, lang);
     const delta = c0 ? fmt.yieldChange(c0.v) : "—";
 
+    const basisTxt = vi
+      ? `trong ${pts.length} cách kết hợp lựa chọn mô hình (thứ tự Cholesky, độ trễ, cách đo lạm phát, xử lý tính dừng), ${pos} cách cho phản ứng dương với khoảng tin cậy 95% không chứa 0 (${fmt.pct(pos / pts.length, 0)}), ${mid} cách không rõ ràng và ${neg} cách âm rõ. Kết luận được xem là vững khi tỷ lệ này đạt ít nhất 80%.`
+      : `across ${pts.length} combinations of model choices (Cholesky order, lags, inflation measure, stationarity treatment), ${pos} give a positive response with a 95% interval excluding 0 (${fmt.pct(pos / pts.length, 0)}), ${mid} are unclear and ${neg} clearly negative. The conclusion is rated robust when this share is at least 80%.`;
     page.setConclusion({
       status,
+      basis: basisTxt,
       headline: vi
         ? (strong
-          ? `Một cú sốc lãi suất Fed +${K}${term("sigma", lang).outerHTML} (≈ <span class="num">${fmt.n(sig * 100, 1)} bp</span>) làm ${rName} ${c0.v > 0 ? "tăng" : "giảm"} <span class="num">${delta}</span> sau ${h0} tháng (CI 95%: <span class="num">${fmt.n(c0.lo, 3)}</span> đến <span class="num">${fmt.n(c0.hi, 3)}</span>).`
-          : `Cú sốc Fed +${K}${term("sigma", lang).outerHTML} không đổi ${rName} có ý nghĩa sau ${h0} tháng.`)
+          ? `Một cú sốc ${lcFirst(varLabel(s.impulse, lang))} bằng một độ lệch chuẩn (≈ <span class="num">${fmt.n(sig, 2)} điểm %</span>) làm ${rName} ${c0.v > 0 ? "tăng" : "giảm"} <span class="num">${delta}</span> sau ${h0} tháng (khoảng tin cậy 95%: <span class="num">${fmt.n(c0.lo, 3)}</span> đến <span class="num">${fmt.n(c0.hi, 3)}</span>).`
+          : `Cú sốc ${lcFirst(varLabel(s.impulse, lang))} bằng một độ lệch chuẩn không làm ${rName} thay đổi có ý nghĩa sau ${h0} tháng.`)
         : (strong
-          ? `A Fed +${K}${term("sigma", lang).outerHTML} shock (≈ <span class="num">${fmt.n(sig * 100, 1)} bp</span>) moves ${rName} by <span class="num">${delta}</span> after ${h0} months (95% CI: <span class="num">${fmt.n(c0.lo, 3)}</span> to <span class="num">${fmt.n(c0.hi, 3)}</span>).`
-          : `A Fed +${K}${term("sigma", lang).outerHTML} shock does not significantly move ${rName} after ${h0} months.`),
+          ? `A one-standard-deviation ${varLabel(s.impulse, lang)} shock (≈ <span class="num">${fmt.n(sig, 2)} pp</span>) moves ${rName} by <span class="num">${delta}</span> after ${h0} months (95% CI: <span class="num">${fmt.n(c0.lo, 3)}</span> to <span class="num">${fmt.n(c0.hi, 3)}</span>).`
+          : `A one-standard-deviation ${varLabel(s.impulse, lang)} shock does not significantly move ${rName} after ${h0} months.`),
       body: c0 ? (vi
-        ? `<p>${slopeNote(s.response, c0.v)} Đúng ở <span class="num">${pos}</span>/${pts.length} cấu hình VAR; <span class="num">${mid}</span> mơ hồ; <span class="num">${neg}</span> âm rõ.${pos / pts.length < 0.8 ? " Dưới ngưỡng 80% nên xếp <b>Mỏng manh</b>." : ""}</p><p>VAR ${portOk ? "không bác bỏ" : "còn"} phần dư trắng (${term("Portmanteau", lang).outerHTML} p = <span class="num">${fmt.p(port)}</span>).</p>`
-        : `<p>${slopeNote(s.response, c0.v)} Holds in <span class="num">${pos}</span>/${pts.length} VAR specs; <span class="num">${mid}</span> unclear; <span class="num">${neg}</span> clearly negative.${pos / pts.length < 0.8 ? " Below the 80% bar → <b>Fragile</b>." : ""}</p><p>Residuals ${portOk ? "look white" : "show autocorrelation"} (${term("Portmanteau", lang).outerHTML} p = <span class="num">${fmt.p(port)}</span>).</p>`) : "",
+        ? `<p>${slopeNote(s.response, c0.v)}</p><p>VAR ${portOk ? "không bác bỏ" : "còn"} phần dư trắng (${term("Portmanteau", lang).outerHTML} p = <span class="num">${fmt.p(port)}</span>).</p>`
+        : `<p>${slopeNote(s.response, c0.v)} Holds in <span class="num">${pos}</span>/${pts.length} VAR specs; <span class="num">${mid}</span> unclear; <span class="num">${neg}</span> clearly negative.</p><p>Residuals ${portOk ? "look white" : "show autocorrelation"} (${term("Portmanteau", lang).outerHTML} p = <span class="num">${fmt.p(port)}</span>).</p>`) : "",
     });
     captionBelow.textContent = vi
       ? `${pos} dương rõ · ${mid} mơ hồ · ${neg} âm rõ (trên ${pts.length} cấu hình)`
@@ -141,7 +154,7 @@ export async function mountIrf(ctx) {
     fPath.setTitle(vi
       ? `Phản ứng ${rName} sau cú sốc ${varLabel(s.impulse, lang)} +${K}σ`
       : `${rName} response after a ${varLabel(s.impulse, lang)} +${K}σ shock`);
-    fPath.setSub(vi ? "Đơn vị điểm %. Vùng tô: CI 95%." : "Units: percentage points. Band: 95% CI.");
+    fPath.setSub(vi ? "Đơn vị: điểm phần trăm. Vùng tô: khoảng tin cậy 95%." : "Units: percentage points. Band: 95% CI.");
     fPath.render((g, { w, h }) => {
       const x = d3.scaleLinear().domain([0, 24]).range([0, w]);
       const y = d3.scaleLinear().domain([d3.min(path, (d) => d.lo), d3.max(path, (d) => d.hi)]).nice().range([h, 0]);
@@ -170,7 +183,7 @@ export async function mountIrf(ctx) {
 
     // B7: CI as area + estimate path + current config dot
     fSpec.setTitle(vi ? `Độ bền qua ${pts.length} cấu hình tại tháng ${h0}` : `Robustness across ${pts.length} specs at month ${h0}`);
-    fSpec.setSub(vi ? "Vùng mờ: CI 95%; đường: ước lượng; chấm đen: cấu hình đang xem." : "Faint band: 95% CI; line: point estimate; black dot: current spec.");
+    fSpec.setSub(vi ? "Mỗi điểm trên trục ngang là một cách kết hợp lựa chọn mô hình, sắp theo giá trị ước lượng. Vùng mờ: khoảng tin cậy 95%; chấm đen: cấu hình đang xem." : "Faint band: 95% CI; line: point estimate; black dot: current spec.");
     fSpec.render((g, { w, h }) => {
       const x = d3.scaleLinear().domain([0, Math.max(1, pts.length - 1)]).range([0, w]);
       const y = d3.scaleLinear().domain([d3.min(pts, (d) => d.lo), d3.max(pts, (d) => d.hi)]).nice().range([h, 0]);
@@ -226,10 +239,10 @@ export async function mountIrf(ctx) {
 
     stepsHost.replaceChildren(readingSteps(lang, vi ? [
       `Cấu hình: ${label("irf.preset." + s.preset, lang)}; ${label("irf.lag." + s.lagMode, lang)}; ${label("irf.infl." + s.infl, lang)}.`,
-      `Cú sốc 1σ ≈ <span class="num">${fmt.n(sig * 100, 1)}</span> bp; đang xem hệ số nhân <span class="num">${K}</span>.`,
-      c0 ? `Tại tháng <span class="num">${h0}</span>, ${rName} ${c0.v > 0 ? "tăng" : "giảm"} <span class="num">${delta}</span> (CI [${fmt.n(c0.lo, 3)}; ${fmt.n(c0.hi, 3)}]).` : "Không có điểm tại chân trời đang chọn.",
+      `Một độ lệch chuẩn của cú sốc tương đương <span class="num">${fmt.n(sig * 100, 1)}</span> điểm cơ bản.`,
+      c0 ? `Tại tháng <span class="num">${h0}</span>, ${rName} ${c0.v > 0 ? "tăng" : "giảm"} <span class="num">${delta}</span> (khoảng tin cậy 95%: ${fmt.n(c0.lo, 3)} đến ${fmt.n(c0.hi, 3)}).` : "Không có điểm tại chân trời đang chọn.",
       `Trên lưới: <span class="num">${pos}</span> dương rõ / <span class="num">${mid}</span> mơ hồ / <span class="num">${neg}</span> âm rõ.`,
-      `Portmanteau p = <span class="num">${fmt.p(port)}</span> ${portOk ? "(không bác bỏ nhiễu trắng)" : "(còn tự tương quan)"}.`,
+      `Portmanteau p = <span class="num">${fmt.p(port)}</span> ${portOk ? "(phần dư không còn tự tương quan)" : "(phần dư còn tự tương quan)"}.`,
     ] : [
       `Spec: ${label("irf.preset." + s.preset, lang)}; ${label("irf.lag." + s.lagMode, lang)}; ${label("irf.infl." + s.infl, lang)}.`,
       `1σ shock ≈ <span class="num">${fmt.n(sig * 100, 1)}</span> bp; multiplier <span class="num">${K}</span>.`,
@@ -248,7 +261,7 @@ export async function mountIrf(ctx) {
           ? `<p>${term("IRF", lang).outerHTML} là đường phản ứng sau một cú sốc chuẩn hóa.</p><p>${term("Cholesky", lang).outerHTML}: biến xếp trước tác động tức thì lên biến xếp sau trong tháng.</p>${s.response === "slope" ? "<p>Slope tăng = đường cong bớt dốc.</p>" : ""}`
           : `<p>${term("IRF", lang).outerHTML} is the path after a unit shock.</p><p>${term("Cholesky", lang).outerHTML}: earlier variables affect later ones within the month.</p>${s.response === "slope" ? "<p>A rise in Slope flattens the curve.</p>" : ""}`,
         confidence: vi
-          ? `Tỷ lệ cấu hình dương rõ tại cặp đang xem: <span class="num">${fmt.pct(pos / pts.length, 0)}</span> — ngưỡng đề án 80%.`
+          ? `Tỷ lệ cách kết hợp cho phản ứng dương rõ: <span class="num">${fmt.pct(pos / pts.length, 0)}</span>, so với ngưỡng 80% cần để xếp là kết luận vững.`
           : `Share clearly positive for this pair: <span class="num">${fmt.pct(pos / pts.length, 0)}</span> — project bar is 80%.`,
         limits: vi
           ? "<ul><li>Cholesky là giả định nhận diện, không chứng minh nhân quả.</li><li>Đổi thứ tự có thể đổi kết quả.</li></ul>"

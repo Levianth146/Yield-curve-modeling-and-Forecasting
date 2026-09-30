@@ -46,15 +46,15 @@ export async function mountProbit(ctx) {
   });
   const chg = () => { persist(); update(); };
   const trainSl = slider({
-    label: vi ? "Huấn luyện đến" : "Train until",
+    label: vi ? "Mẫu huấn luyện đến hết năm" : "Train until",
     min: 1985, max: 2015, value: Number(String(s.trainEnd).slice(0, 4)),
-    format: (v) => `${v}-12 → test ${v + 2}-01`,
+    format: (v) => vi ? `${v} (kiểm định từ ${v + 2})` : `${v}-12 → test ${v + 2}-01`,
     onInput: (v) => { s.trainEnd = `${v}-12`; chg(); },
   });
-  const thrSl = slider({ label: vi ? "Ngưỡng báo động P ≥" : "Alarm threshold P ≥", min: 5, max: 90, step: 5, value: Math.round(s.threshold * 100), format: (v) => v + "%", onInput: (v) => { s.threshold = v / 100; chg(); } });
+  const thrSl = slider({ label: vi ? "Ngưỡng cảnh báo: xác suất ≥" : "Alarm threshold P ≥", min: 5, max: 90, step: 5, value: Math.round(s.threshold * 100), format: (v) => v + "%", onInput: (v) => { s.threshold = v / 100; chg(); } });
   controls.append(
     chips({ label: vi ? "Biến giải thích" : "Predictor", options: MODELS.map((id) => ({ id, label: label("probit." + id, lang) })), value: s.model, onPick: (v) => { s.model = v; chg(); } }),
-    chips({ label: vi ? "Loại tháng đang suy thoái" : "Drop in-recession months", options: [{ id: "true", label: vi ? "Có (đề án)" : "Yes" }, { id: "false", label: vi ? "Không" : "No" }], value: String(!s.noRecessionFilter), onPick: (v) => { s.noRecessionFilter = v === "false"; chg(); } }),
+    chips({ label: vi ? "Loại bỏ các tháng đang suy thoái" : "Drop in-recession months", options: [{ id: "true", label: vi ? "Có (chính)" : "Yes" }, { id: "false", label: vi ? "Không" : "No" }], value: String(!s.noRecessionFilter), onPick: (v) => { s.noRecessionFilter = v === "false"; chg(); } }),
     trainSl, thrSl,
   );
   const rst = resetLink(lang, !isDefaults(), () => resetToDefaults());
@@ -64,7 +64,7 @@ export async function mountProbit(ctx) {
   const fTime = figure({ title: "​", sub: "", height: 330, margin: { r: 60 } });
   const fCurve = figure({ title: vi ? "Từ spread đến xác suất" : "From spread to probability", sub: "", height: 300, margin: { r: 20 } });
   const fRoc = figure({ title: "ROC", sub: "", height: 300, margin: { l: 44, r: 20 } });
-  const fRel = figure({ title: vi ? "Hiệu chuẩn" : "Calibration", sub: "", height: 300, margin: { l: 44, r: 20 } });
+  const fRel = figure({ title: vi ? "Xác suất dự báo so với tần suất thực tế" : "Calibration", sub: "", height: 300, margin: { l: 44, r: 20 } });
   const stepsHost = el("div");
   const formulaHost = el("div");
   const explainHost = el("div");
@@ -79,14 +79,14 @@ export async function mountProbit(ctx) {
     ["spread_10y3m_fixed", "probit.spread_10y3m_fixed"],
   ].filter(([k]) => golden[k]);
   compareBox.append(
-    el("h3", { class: "fig-title" }, vi ? "So sánh mô hình báo cáo" : "Report model comparison"),
-    el("p", { class: "fig-sub" }, vi ? "Số đóng băng từ mẫu đề án — không đổi theo thanh điều khiển." : "Frozen report numbers — independent of the sliders."),
+    el("h3", { class: "fig-title" }, vi ? "So sánh các biến thể mô hình" : "Report model comparison"),
+    el("p", { class: "fig-sub" }, vi ? "Kết quả tính sẵn trên mẫu của đề án, không thay đổi theo thanh điều khiển." : "Frozen report numbers — independent of the sliders."),
     el("table", { class: "data-table" },
       el("thead", {}, el("tr", {},
         el("th", {}, vi ? "Mô hình" : "Model"),
         el("th", {}, "AUC"),
         el("th", {}, vi ? "McFadden R²" : "McFadden R²"),
-        el("th", {}, vi ? "Tháng dương (train)" : "Positive months (train)"),
+        el("th", {}, vi ? "Số tháng có suy thoái sau đó (huấn luyện)" : "Positive months (train)"),
       )),
       el("tbody", {}, ...cmpRows.map(([k, lab]) => {
         const g = golden[k];
@@ -122,26 +122,30 @@ export async function mountProbit(ctx) {
     const status = auc > 0.7 && sk < 0 ? "supported" : "fragile";
     const r2 = mcfadden(fit, yTr, xTr);
 
+    const basisTxt = vi
+      ? `trên tập kiểm định ngoài mẫu, AUC = ${fmt.n(auc, 3)} (${auc > 0.7 ? "đạt" : "chưa đạt"} ngưỡng 0,7) và BSS = ${fmt.sgpct(sk)} (${sk < 0 ? "âm" : "không âm"}). Kết luận “xếp hạng rủi ro tốt nhưng xác suất chưa chính xác” được xem là vững khi đồng thời AUC lớn hơn 0,7 và BSS âm.`
+      : `on the out-of-sample test set, AUC = ${fmt.n(auc, 3)} (${auc > 0.7 ? "above" : "below"} 0.7) and BSS = ${fmt.sgpct(sk)} (${sk < 0 ? "negative" : "not negative"}). The conclusion “ranks risk well but probabilities are inaccurate” is rated robust when AUC exceeds 0.7 and BSS is negative.`;
     page.setConclusion({
       status,
+      basis: basisTxt,
       headline: vi
-        ? `Đường cong đảo ngược <b>xếp hạng</b> rủi ro suy thoái tốt (${term("AUC", lang).outerHTML} <span class="num">${fmt.n(auc, 3)}</span>) nhưng <b>xác suất</b> mô hình đưa ra kém chính xác hơn việc luôn dự báo tần suất nền (${term("BSS", lang).outerHTML} <span class="num">${fmt.sgpct(sk)}</span>).`
+        ? `Đường cong đảo ngược <b>xếp hạng</b> rủi ro suy thoái tốt (${term("AUC", lang).outerHTML} <span class="num">${fmt.n(auc, 3)}</span>) nhưng <b>xác suất</b> mô hình đưa ra kém chính xác hơn mô hình đối chứng luôn dự báo bằng tỷ lệ suy thoái trung bình (${term("BSS", lang).outerHTML} <span class="num">${fmt.sgpct(sk)}</span>).`
         : `An inverted curve <b>ranks</b> recession risk well (${term("AUC", lang).outerHTML} <span class="num">${fmt.n(auc, 3)}</span>) but model <b>probabilities</b> are less accurate than always forecasting the base rate (${term("BSS", lang).outerHTML} <span class="num">${fmt.sgpct(sk)}</span>).`,
       body: vi
-        ? `<p>AUC hỏi: nếu bốc một tháng trước suy thoái và một tháng bình thường, mô hình gán xác suất cao hơn cho tháng trước suy thoái bao nhiêu phần trăm số lần? Ở đây là <span class="num">${fmt.pct(auc, 0)}</span>. BSS hỏi khác: xác suất con số có sát thực tế không?</p><p>Huấn luyện chỉ có <span class="num">${nPosTrain}</span> tháng dương trên <span class="num">${yTr.length}</span> tháng (tần suất nền <span class="num">${fmt.pct(base)}</span>). Ở ngưỡng <span class="num">${Math.round(thr * 100)}%</span> mô hình bắt <span class="num">${tp}</span>/<span class="num">${nPos}</span> tháng suy thoái và báo nhầm <span class="num">${fmt.pct(fpr, 0)}</span> tháng bình thường. Từ 2022 có <span class="num">${fa22}</span> tháng vượt ngưỡng mà ${term("NBER", lang).outerHTML} chưa xác nhận suy thoái.</p>`
+        ? `<p>AUC trả lời câu hỏi: nếu chọn ngẫu nhiên một tháng đứng trước suy thoái và một tháng bình thường, mô hình gán xác suất cao hơn cho tháng đứng trước suy thoái trong bao nhiêu phần trăm số lần? Ở đây là <span class="num">${fmt.pct(auc, 0)}</span>. BSS trả lời câu hỏi khác: bản thân con số xác suất có sát với thực tế không?</p><p>Tập huấn luyện chỉ có <span class="num">${nPosTrain}</span> tháng có suy thoái trong 12 tháng sau, trên tổng số <span class="num">${yTr.length}</span> tháng (tần suất nền <span class="num">${fmt.pct(base)}</span>). Ở ngưỡng <span class="num">${Math.round(thr * 100)}%</span> mô hình bắt <span class="num">${tp}</span>/<span class="num">${nPos}</span> tháng suy thoái và báo nhầm <span class="num">${fmt.pct(fpr, 0)}</span> tháng bình thường. Từ 2022 có <span class="num">${fa22}</span> tháng vượt ngưỡng mà ${term("NBER", lang).outerHTML} chưa xác nhận suy thoái.</p>`
         : `<p>AUC asks how often a pre-recession month ranks above a normal one — here <span class="num">${fmt.pct(auc, 0)}</span>. BSS asks whether probability levels are calibrated.</p><p>Training has only <span class="num">${nPosTrain}</span> positives in <span class="num">${yTr.length}</span> months (base rate <span class="num">${fmt.pct(base)}</span>). At <span class="num">${Math.round(thr * 100)}%</span> the model catches <span class="num">${tp}</span>/<span class="num">${nPos}</span> recession months with <span class="num">${fmt.pct(fpr, 0)}</span> false alarms. Since 2022, <span class="num">${fa22}</span> months exceed the threshold without an ${term("NBER", lang).outerHTML} recession.</p>`,
     });
 
     setStrip(kpi, [
-      { k: "AUC", v: fmt.n(auc, 3), d: vi ? "Xếp hạng cặp dương/âm" : "Ranks positive above negative" },
-      { k: "BSS", v: fmt.sgpct(sk), cls: sk < 0 ? "neg" : "pos", d: vi ? "Âm = kém hơn tần suất nền" : "Negative = worse than base rate" },
-      { k: vi ? `Bắt @${Math.round(thr * 100)}%` : `Hit @${Math.round(thr * 100)}%`, v: `${tp}/${nPos}`, d: vi ? `báo nhầm ${fmt.pct(fpr, 0)}` : `false alarm ${fmt.pct(fpr, 0)}` },
-      { k: vi ? "Báo nhầm 2022→" : "False alarms 2022→", v: String(fa22), cls: fa22 ? "warn" : "" },
+      { k: "AUC", v: fmt.n(auc, 3), d: vi ? "Khả năng xếp hạng rủi ro" : "Ranks positive above negative" },
+      { k: "BSS", v: fmt.sgpct(sk), cls: sk < 0 ? "neg" : "pos", d: vi ? "Âm: kém hơn mô hình đối chứng" : "Negative = worse than base rate" },
+      { k: vi ? `Phát hiện đúng (ngưỡng ${Math.round(thr * 100)}%)` : `Hit @${Math.round(thr * 100)}%`, v: `${tp}/${nPos}`, d: vi ? `báo nhầm ${fmt.pct(fpr, 0)} số tháng bình thường` : `false alarm ${fmt.pct(fpr, 0)}` },
+      { k: vi ? "Số tháng báo nhầm từ 2022" : "False alarms 2022→", v: String(fa22), cls: fa22 ? "warn" : "" },
     ]);
 
     const all = rows.filter((r) => (filt ? !r.recession_at_t : true)).map((r) => ({ x: parseD(r.date), date: r.date, p: predictProbit(fit.b0, fit.b1, r.spread), y: r.recession_ahead, train: String(r.date).slice(0, 7) <= s.trainEnd }));
     fTime.setTitle(vi ? "Xác suất suy thoái trong 12 tháng tới theo thời gian" : "Probability of recession within 12 months over time");
-    fTime.setSub(vi ? "Xám: NBER. Mảnh = train; đậm = test. Nét đứt = ngưỡng." : "Grey: NBER. Thin = train; bold = test. Dashed = threshold.");
+    fTime.setSub(vi ? "Vùng xám: suy thoái theo NBER. Đường mảnh: giai đoạn huấn luyện; đường đậm: giai đoạn kiểm định; nét đứt: ngưỡng cảnh báo." : "Grey: NBER. Thin = train; bold = test. Dashed = threshold.");
     fTime.render((g, { w, h }) => {
       const x = d3.scaleTime().domain(d3.extent(all, (d) => d.x)).range([0, w]), y = d3.scaleLinear().domain([0, 1]).range([h, 0]);
       recBands(g, x, h, [...NBER_PRE2000, ...data.recessions.spells]);
@@ -209,8 +213,8 @@ export async function mountProbit(ctx) {
 
     stepsHost.replaceChildren(readingSteps(lang, vi ? [
       `Huấn luyện đến <span class="num">${s.trainEnd}</span>, kiểm tra từ <span class="num">${testStart}</span> (${label("probit." + s.model, lang)}).`,
-      `Tần suất nền huấn luyện <span class="num">${fmt.pct(base)}</span> với <span class="num">${nPosTrain}</span> tháng dương.`,
-      `Ngoài mẫu: AUC <span class="num">${fmt.n(auc, 3)}</span>, BSS <span class="num">${fmt.sgpct(sk)}</span>.`,
+      `Tỷ lệ tháng có suy thoái trong 12 tháng sau ở tập huấn luyện: <span class="num">${fmt.pct(base)}</span> (<span class="num">${nPosTrain}</span> tháng).`,
+      `Trên tập kiểm định: AUC <span class="num">${fmt.n(auc, 3)}</span>, BSS <span class="num">${fmt.sgpct(sk)}</span>.`,
       `Ngưỡng <span class="num">${Math.round(thr * 100)}%</span>: bắt <span class="num">${tp}/${nPos}</span>, báo nhầm <span class="num">${fmt.pct(fpr, 0)}</span>.`,
       `Từ 2022: <span class="num">${fa22}</span> tháng vượt ngưỡng chưa có nhãn suy thoái NBER.`,
     ] : [
@@ -222,7 +226,7 @@ export async function mountProbit(ctx) {
     ]));
 
     formulaHost.replaceChildren(modelFormula(lang, "probit", vi
-      ? `Cấu hình đang xem: AUC ${fmt.n(auc, 3)}, BSS ${fmt.sgpct(sk)}, n⁺ train = ${nPosTrain}${Number.isFinite(r2) ? `, McFadden R² ≈ ${fmt.n(r2, 3)}` : ""}.`
+      ? `Cấu hình đang xem: AUC ${fmt.n(auc, 3)}, BSS ${fmt.sgpct(sk)}, số tháng có suy thoái sau đó trong tập huấn luyện = ${nPosTrain}${Number.isFinite(r2) ? `, McFadden R² ≈ ${fmt.n(r2, 3)}` : ""}.`
       : `Current: AUC ${fmt.n(auc, 3)}, BSS ${fmt.sgpct(sk)}, n⁺ train = ${nPosTrain}${Number.isFinite(r2) ? `, McFadden R² ≈ ${fmt.n(r2, 3)}` : ""}.`));
 
     explainHost.replaceChildren(

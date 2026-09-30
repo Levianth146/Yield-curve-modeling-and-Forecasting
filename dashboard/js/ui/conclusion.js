@@ -17,7 +17,7 @@ const STATUS_ICON = {
  * @param {HTMLElement} host
  * @param {{ status: 'supported'|'fragile'|'notSupported', headline: string, body: string, lang?: string }} opts
  */
-export function conclusion(host, { status, headline, body, lang = "vi" }) {
+export function conclusion(host, { status, headline, body, basis = "", lang = "vi" }) {
   const key =
     status === "supported" ? "statusSupported" :
     status === "notSupported" ? "statusNotSupported" :
@@ -26,7 +26,7 @@ export function conclusion(host, { status, headline, body, lang = "vi" }) {
     status === "supported" ? "statusTipSupported" :
     status === "notSupported" ? "statusTipNotSupported" :
     "statusTipFragile";
-  const cls = STATUS_CLS[status] || STATUS_CLS.fragile;
+  const cls = status ? (STATUS_CLS[status] || STATUS_CLS.fragile) : "conclusion-neutral";
   const icon = STATUS_ICON[status] || STATUS_ICON.fragile;
   host.innerHTML = "";
   const badgeRow = el("div", { class: "conclusion-badge-row" },
@@ -37,18 +37,35 @@ export function conclusion(host, { status, headline, body, lang = "vi" }) {
     ),
     el("span", { class: "conclusion-tip-line" }, t(lang, tipKey)),
   );
+  // Căn cứ cụ thể của nhãn: hiển thị thay cho câu định nghĩa chung.
+  const basisEl = el("div", { class: "conclusion-basis" });
+  const setBasis = (b) => {
+    if (b) {
+      basisEl.innerHTML = `<b>${lang === "en" ? "Basis for this rating:" : "Căn cứ đánh giá:"}</b> ${b}`;
+      basisEl.hidden = false;
+      const tl = badgeRow.querySelector(".conclusion-tip-line"); if (tl) tl.hidden = true;
+    } else {
+      basisEl.hidden = true;
+      const tl = badgeRow.querySelector(".conclusion-tip-line"); if (tl) tl.hidden = false;
+    }
+  };
+  setBasis(basis);
+  if (!status) badgeRow.hidden = true;
   const box = el("div", {
     class: `conclusion ${cls}`,
     "aria-live": "polite",
   },
     badgeRow,
+    basisEl,
     el("p", { class: "conclusion-headline", html: headline }),
     el("div", { class: "conclusion-body", html: body }),
   );
   host.append(box);
   return {
-    update({ status: st, headline: h, body: b }) {
+    update({ status: st, headline: h, body: b, basis: bs }) {
+      if (bs !== undefined) setBasis(bs);
       if (st) {
+        badgeRow.hidden = false;
         const k = st === "supported" ? "statusSupported" : st === "notSupported" ? "statusNotSupported" : "statusFragile";
         const tk = st === "supported" ? "statusTipSupported" : st === "notSupported" ? "statusTipNotSupported" : "statusTipFragile";
         const ic = STATUS_ICON[st] || STATUS_ICON.fragile;
@@ -70,14 +87,14 @@ export function conclusion(host, { status, headline, body, lang = "vi" }) {
  * Page shell: eyebrow + H2 + conclusion in hero.
  * @returns {{ setConclusion, setTitle }}
  */
-export function pageHero(host, { eyebrow, title, status, headline, body, lang }) {
+export function pageHero(host, { eyebrow, title, status, headline, body, basis = "", lang }) {
   host.innerHTML = "";
   host.className = "hero";
   const eb = el("div", { class: "eyebrow" }, eyebrow);
   const h2 = el("h2", {}, title);
   const slot = el("div", { class: "conclusion-slot" });
   host.append(eb, h2, slot);
-  const api = conclusion(slot, { status, headline, body, lang });
+  const api = conclusion(slot, { status, headline, body, basis, lang });
   return {
     setTitle(s) { h2.textContent = s; },
     setConclusion: api.update,

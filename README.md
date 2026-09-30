@@ -4,7 +4,7 @@
 
 **Project 04 · US Treasury yield curve: Nelson–Siegel → forecasting → Fed shocks → recession signal → Vietnam extension**
 
-> In one sentence: we take the interest rates of US government bonds for 10 maturities, squeeze the whole curve into three easy-to-read numbers (Level, Slope, Curvature), and then ask four practical questions about them. Can they be forecast? How does the Fed move them? Do they warn of a recession? Does the same idea work for Vietnam?
+> In one sentence: we take US Treasury yields at 10 maturities, compress the curve into three readable factors (Level, Slope, Curvature), and ask five questions: do those factors describe the curve well, can they be forecast, how do they respond to Fed-rate shocks, do they warn of recession, and does the same framework work for Vietnam?
 
 ---
 
@@ -21,7 +21,7 @@
 9. [Repository map](#9-repository-map)
 10. [Troubleshooting (FAQ)](#10-troubleshooting-faq)
 11. [Limitations and honest caveats](#11-limitations-and-honest-caveats)
-12. [Working as a team, references](#12-working-as-a-team-references)
+12. [References](#12-references)
 
 ---
 
@@ -34,7 +34,7 @@ A **yield curve** is a line showing the interest rate the government pays for bo
 | **RQ1** | Can 3 numbers describe the whole curve? | **Yes.** Nelson–Siegel fits with an average error of about **9 bp** (0.09 percentage points), under our 10 bp target. |
 | **RQ2** | Can a statistical model (AR) forecast those numbers better than the naive rule "next month = this month" (random walk)? | **No, not significantly.** The naive rule wins at 1 month and ties at 12 months. Only Curvature shows a small, non-significant edge for AR. |
 | **RQ3** | If the Fed raises rates suddenly, what happens to the curve? | The **Slope rises** (short rates move up faster than long rates, so the curve flattens) and Curvature falls; Level barely reacts. The result is **robust across many settings, but depends on the assumed ordering of variables**, so read it as *fragile-to-moderate* evidence. |
-| **RQ4** | Does an inverted curve (10Y − 2Y below zero) warn of recession within 12 months? | It **ranks risk well** (AUC **0.82**) but its **probabilities are not well calibrated** (worse than a constant guess, Brier skill score **−15%**) and it gave a long false alarm in 2022–2026. |
+| **RQ4** | Does an inverted curve (10Y − 2Y below zero) warn of recession within 12 months? | It **ranks risk well** (AUC **0.82**) but its probabilities are **poorly calibrated** (Brier skill score **−15%**). The 2022–2026 stress window contains many high-probability months, but **only months with a full 12-month look-ahead are completely labelled**, so the whole of 2026 should not be called a confirmed false alarm. |
 | **RQ5** | Does the same method work for Vietnam? | **Partly.** Three factors describe Vietnam's curve, but its best λ is different (**0.40** vs 0.7308 for the US) and its factors do not move with the US ones. Data are reference prices, not the official curve. |
 
 > **How to read "bp":** 1 bp (basis point) = 0.01 percentage point. 9 bp = 0.09 %.
@@ -59,47 +59,81 @@ If you are unsure, start with **Path A**. It works even if you have never progra
 
 ## 3. Path A. Just look at the results (dashboard, 5 minutes)
 
-The dashboard ("Yield Curve Lab") is a small website that runs on your own computer. It already contains all the data it needs (folder `dashboard/data/`), so you do **not** have to run the analysis first.
+The dashboard (**Yield Curve Lab**) is a static website that runs locally. The files in `dashboard/data/` already contain the exported results, so you **do not need to rerun the models** just to view the dashboard.
 
 ### Step 1: Install Python (once)
-- Download Python **3.10 or newer** from <https://www.python.org/downloads/>.
-- **Windows:** during installation, tick **"Add python.exe to PATH"**.
-- Check it worked: open a terminal (Windows: press the Windows key, type `PowerShell`, Enter; macOS: open *Terminal*) and type `python --version`. On macOS/Linux use `python3` if `python` is not found.
+- Python **3.10+** is recommended.
+- On Windows, enable **Add python.exe to PATH** during installation.
+- Check with `py --version` or `python --version`.
 
-### Step 2: Get the project
-- Easiest: on the GitHub page click the green **Code** button → **Download ZIP**, then unzip it.
-- Or with git: `git clone https://github.com/Levianth146/Yield-curve-modeling-and-Forecasting`
+### Step 2: Download and fully extract the project
+- GitHub: **Code → Download ZIP → Extract All**.
+- Or: `git clone https://github.com/Levianth146/Yield-curve-modeling-and-Forecasting`
 
-### Step 3: Start the dashboard
-In the terminal, go into the project folder and then into `dashboard`, and start a tiny local web server:
+> Do not run the dashboard from inside the ZIP and do not double-click `dashboard/index.html`. ES modules/workers require a local HTTP server.
 
-```bash
-cd Yield-curve-modeling-and-Forecasting/dashboard
-python -m http.server 8765
+### Step 3: Open the dashboard — choose one method
+
+#### Method 1 — Windows one-click: `Mo_dashboard.bat` (recommended)
+From the **project root**, double-click:
+
+```text
+run.bat
 ```
 
-(Use `python3` instead of `python` if needed. Leave this window open. It is the server.)
+The launcher finds `py`/`python`, starts a **no-cache** local server, opens the browser automatically, prefers port **8765**, and falls back to the next free port if 8765 is busy.
 
-### Step 4: Open it
-Open your browser and go to **<http://127.0.0.1:8765/>**.
-To stop: click the terminal window and press `Ctrl + C`.
+Keep the server window open while using the dashboard. Press `Ctrl + C` to stop it.
+
+#### Method 2 — PowerShell / Terminal from the project root
+This is the same server used by the `.bat` launcher:
+
+```powershell
+py scripts\serve_dashboard.py
+```
+
+or:
+
+```powershell
+python scripts\serve_dashboard.py
+```
+
+Useful options:
+
+```powershell
+py scripts\serve_dashboard.py --selftest
+py scripts\serve_dashboard.py --port 8766
+```
+
+Always use the exact URL printed by the server, especially when the default port is busy.
+
+#### Method 3 — basic static server (fallback)
+
+```powershell
+cd dashboard
+py -m http.server 8765
+```
+
+Then open `http://127.0.0.1:8765/`.
+
+This fallback does **not** disable browser caching and does not open the browser automatically, so Method 1 or 2 is better while editing the UI.
 
 ### How to use the dashboard
-The tabs across the top follow the study in order:
 
 | Tab | The question it answers | What to try |
 |---|---|---|
-| **Today** | What does the curve look like now, and is it inverted? | Drag the date slider back to 2007, 2019, 2022 and watch the shape change. |
-| **Factors** | How do Level / Slope / Curvature describe the curve? | Change λ and see whether the factors stay stable. |
-| **Forecast** | Does AR beat "next month = this month"? | Switch factor and horizon (1/3/6/12 months); read the *p-value* box. |
-| **Fed shock** | What does a Fed rate surprise do to the curve? | Change lag length and variable ordering; the shaded band is the 95 % uncertainty range. |
-| **Recession** | Does an inverted curve warn of recession? | Move the decision threshold and watch the false-alarm / hit trade-off. |
-| **Vietnam** | Does the method work for Vietnam? | Compare Vietnam's λ with the US one. |
-| **Summary** | Which conclusions are solid, which are fragile? | Start here if you only have two minutes. |
+| **Overview** | What does the selected yield curve look like, and what theory is needed to read it? | Move the date to 2007, 2019 or 2022; use A1–A6 to connect the curve shape with Level / Slope / Curvature. |
+| **Factors** | How well do Level / Slope / Curvature describe the curve? | Change λ and the estimation method and inspect factor stability. |
+| **Forecast** | Does AR beat “next month = this month”? | Switch factor and horizon (1/3/6/12 months); compare RMSE and the DM test. |
+| **Fed shock** | How does the fitted curve respond after a Fed-rate shock in the VAR? | Change lag length and variable ordering; the shaded band is the 95% uncertainty range. |
+| **Recession** | Does the spread help rank recession risk? | Move the decision threshold and inspect the hit / false-alarm trade-off. |
+| **Vietnam** | Can Nelson–Siegel describe the Vietnam yield data? | Compare Vietnam’s λ with the US value and read the data-quality warnings. |
+| **Summary** | How strongly does the evidence support the project’s five main claims? | Use this page for a fast presentation recap. |
+| **Methods** | Where are the data, formulas and reproduction steps? | Use it as the technical appendix during questions or review. |
 
-Every page has the same layout: **question → one-sentence conclusion → chart → "what it means / how reliable / limits"**. The settings you choose are stored in the web address, so you can copy the link to share exactly what you are looking at.
+The **Overview** page includes the A1–A6 theory section and keeps only **Reliability / Limits** at the bottom to avoid repetition. The analysis pages use **question → conclusion → charts/tables → interpretation → reliability/limits**. Formula cards display the **“where”** definitions one symbol per row.
 
-> Adding `?selftest=1` to the address (`http://127.0.0.1:8765/?selftest=1`) makes the dashboard check its own calculations against the Python results. A green banner means they match.
+> To run the parity self-test, use `py scripts\serve_dashboard.py --selftest`. A red banner means the JavaScript engine does not match the golden/Python results; no red banner means the self-test passed.
 
 ---
 
@@ -150,9 +184,10 @@ Useful options:
 ### Step 5: Refresh the dashboard with new numbers
 ```bash
 python scripts/export_dashboard_data.py          # add --skip-irf for a quick refresh
-cd dashboard
-python -m http.server 8765
+python scripts/serve_dashboard.py                 # no-cache server; opens the browser
 ```
+
+For a basic static server only, use `cd dashboard` and then `python -m http.server 8765`.
 
 ### Automated checks
 ```bash
@@ -259,6 +294,7 @@ Rules: first column is the date `YYYY-MM-DD`; other columns are maturities in ye
 ```
 Yield-curve-modeling-and-Forecasting/
 ├── README.md / README.vi.md     ← you are here (English / Vietnamese)
+├── Mo_dashboard.bat             ← Windows: double-click to open the dashboard
 ├── requirements.txt             ← Python libraries
 ├── src/                         ← the logic (change code here)
 │   ├── config.py                  settings: dates, maturities, λ, lags
@@ -292,9 +328,9 @@ Yield-curve-modeling-and-Forecasting/
 |---|---|
 | `python` is not recognised | Reinstall Python and tick **Add to PATH**, or try `py` (Windows) / `python3` (macOS, Linux). |
 | `pip install` fails | Update pip first: `python -m pip install --upgrade pip`. Use a virtual environment (Step 1 of Path B). |
-| Dashboard page is blank or says "failed to load" | Open it through `http://127.0.0.1:8765/`, **not** by double-clicking `index.html` (browsers block module files opened from disk). |
-| "Address already in use" / port 8765 busy | Use another port: `python -m http.server 8766`, then open `…:8766`. |
-| You changed code but the dashboard looks old | Hard refresh (`Ctrl + Shift + R`). Browsers cache scripts. |
+| Dashboard page is blank or says "failed to load" | From the project root run `py scripts\serve_dashboard.py`. Do **not** double-click `dashboard/index.html`. |
+| Port 8765 is busy | `serve_dashboard.py` automatically tries the next free port. To request one explicitly: `py scripts\serve_dashboard.py --port 8766`. |
+| You changed code but the dashboard looks old | Prefer `Mo_dashboard.bat` or `py scripts\serve_dashboard.py`; this server sends no-cache headers. Close any old tab and use the URL printed by the new server. |
 | Download from FRED fails | Check your internet, or set `FRED_API_KEY`. The pipeline falls back to the public CSV and to cached files in `data/`. |
 | Pipeline takes long | Add `--skip-irf-export` for a quick run. |
 | Self-test banner is red | Run `python scripts/run_pipeline.py` then `python scripts/export_dashboard_data.py` so dashboard data and Python are from the same run. |

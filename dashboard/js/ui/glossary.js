@@ -25,22 +25,22 @@ export function resetGlossary() {
   if (page) seen.delete(page);
 }
 
-export function explainBox(lang, { meaning, confidence, limits }) {
+export function explainBox(lang, { meaning = "", confidence = "", limits = "" }) {
   const vi = lang !== "en";
-  return el("div", { class: "explain-box" },
-    el("div", {},
-      el("h4", {}, vi ? "Nghĩa là gì" : "What it means"),
-      typeof meaning === "string" ? el("p", { html: meaning }) : meaning,
-    ),
-    el("div", {},
-      el("h4", {}, vi ? "Độ tin cậy" : "Confidence"),
-      typeof confidence === "string" ? el("p", { html: confidence }) : confidence,
-    ),
-    el("div", {},
-      el("h4", {}, vi ? "Giới hạn" : "Limits"),
-      typeof limits === "string" ? el("p", { html: limits }) : limits,
-    ),
-  );
+  const cols = [];
+  if (meaning) cols.push(el("div", {},
+    el("h4", {}, vi ? "Nghĩa là gì" : "What it means"),
+    typeof meaning === "string" ? el("p", { html: meaning }) : meaning,
+  ));
+  if (confidence) cols.push(el("div", {},
+    el("h4", {}, vi ? "Độ tin cậy" : "Confidence"),
+    typeof confidence === "string" ? el("p", { html: confidence }) : confidence,
+  ));
+  if (limits) cols.push(el("div", {},
+    el("h4", {}, vi ? "Giới hạn" : "Limits"),
+    typeof limits === "string" ? el("p", { html: limits }) : limits,
+  ));
+  return el("div", { class: `explain-box explain-cols-${cols.length}` }, ...cols);
 }
 
 export function methodDetails(lang, { methodHtml, reproduceText, onCopy }) {

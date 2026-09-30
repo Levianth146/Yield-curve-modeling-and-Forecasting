@@ -12,13 +12,13 @@ export async function mountMethods(ctx) {
   pageHero(heroEl, {
     eyebrow: vi ? "08 · Phương pháp" : "08 · Methods",
     title: t(lang, "h2Methods"),
-    status: "supported",
+    status: null,
     lang,
     headline: vi
-      ? "Trang này gom dữ liệu, công thức, tham số cố định và mã tái lập — không phải kết luận nghiên cứu."
+      ? "Dữ liệu, mô hình và các tham số được sử dụng trong đề án, cùng hướng dẫn tái lập toàn bộ kết quả."
       : "This page collects data, formulas, fixed parameters and reproduce code — not research claims.",
     body: vi
-      ? "<p>Đọc từ trên xuống hoặc nhảy bằng mục lục. Công thức dùng cùng ký hiệu như trong báo cáo; ví dụ số động nằm ở từng trang kết quả.</p>"
+      ? "<p>Trang này tổng hợp nguồn dữ liệu, công thức của từng mô hình, các tham số được cố định trong phân tích, và mã Python để tái lập kết quả. Ký hiệu thống nhất với báo cáo; các ví dụ tính bằng số liệu thực tế được trình bày ở từng trang kết quả. Có thể đọc lần lượt từ trên xuống hoặc chọn mục trong mục lục bên dưới.</p>"
       : "<p>Read top to bottom or jump via the table of contents. Notation matches the report; live numeric examples sit on each results page.</p>",
   });
 
@@ -32,7 +32,7 @@ export async function mountMethods(ctx) {
      ["#m-params", vi ? "Tham số cố định" : "Fixed parameters"],
      ["#m-repro", vi ? "Tái lập Python" : "Reproduce"],
      ["#m-lit", vi ? "Tài liệu" : "Literature"],
-     ["#m-test", vi ? "Self-test" : "Self-test"],
+     ["#m-test", vi ? "Kiểm tra khớp số" : "Self-test"],
     ].map(([href, lab]) => el("a", { href }, lab)),
   );
 
@@ -51,7 +51,7 @@ export async function mountMethods(ctx) {
 
   const sections = [
     ["m-ns", "ns", "Nelson–Siegel"],
-    ["m-ar", "ar", "AR / random walk / Diebold–Mariano"],
+    ["m-ar", "ar", "AR / Random Walk / Diebold–Mariano"],
     ["m-var", "var", "VAR / Cholesky / IRF"],
     ["m-probit", "probit", "Probit"],
     ["m-vn", "vn", vi ? "Mở rộng Việt Nam" : "Vietnam extension"],

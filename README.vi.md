@@ -4,7 +4,7 @@
 
 **Đề án 04 · Đường cong lợi suất trái phiếu Mỹ: Nelson–Siegel → dự báo → cú sốc Fed → tín hiệu suy thoái → mở rộng Việt Nam**
 
-> Nói ngắn gọn: lấy lãi suất trái phiếu chính phủ Mỹ ở 10 kỳ hạn, nén cả đường cong thành ba con số dễ đọc (Level, Slope, Curvature), rồi hỏi bốn câu thực tế. Chúng có dự báo được không? Fed tác động lên chúng thế nào? Chúng có báo trước suy thoái không? Ý tưởng này có dùng được cho Việt Nam không?
+> Nói ngắn gọn: lấy lãi suất trái phiếu chính phủ Mỹ ở 10 kỳ hạn, nén cả đường cong thành ba con số dễ đọc (Level, Slope, Curvature), rồi hỏi năm câu: ba nhân tố có mô tả đủ tốt không, có dự báo được không, Fed tác động lên chúng thế nào, chúng có báo trước suy thoái không, và cách tiếp cận này có dùng được cho Việt Nam không?
 
 ---
 
@@ -21,7 +21,7 @@
 9. [Bản đồ thư mục](#9-bản-đồ-thư-mục)
 10. [Gặp lỗi thì làm gì (FAQ)](#10-gặp-lỗi-thì-làm-gì-faq)
 11. [Hạn chế cần nói thẳng](#11-hạn-chế-cần-nói-thẳng)
-12. [Làm việc nhóm, tài liệu tham khảo](#12-làm-việc-nhóm-tài-liệu-tham-khảo)
+12. [Tài liệu tham khảo](#12-tài-liệu-tham-khảo)
 
 ---
 
@@ -34,7 +34,7 @@
 | **RQ1** | Ba con số có mô tả được cả đường cong không? | **Có.** Nelson–Siegel khớp với sai số trung bình khoảng **9 bp** (0.09 điểm %), dưới ngưỡng 10 bp đề ra. |
 | **RQ2** | Mô hình thống kê AR có dự báo các con số đó tốt hơn quy tắc ngây thơ "tháng sau = tháng này" (random walk) không? | **Không, ít nhất là không có ý nghĩa thống kê.** Quy tắc ngây thơ thắng ở 1 tháng và hoà ở 12 tháng. Chỉ Curvature có lợi thế nhỏ cho AR, nhưng không đáng kể. |
 | **RQ3** | Fed tăng lãi suất bất ngờ thì đường cong thay đổi ra sao? | **Slope tăng** (lãi suất ngắn hạn tăng nhanh hơn dài hạn nên đường cong phẳng lại), Curvature giảm, Level gần như không phản ứng. Kết quả **bền qua nhiều cấu hình nhưng phụ thuộc thứ tự biến giả định**, nên xếp mức *vừa phải*, chưa phải bằng chứng chắc. |
-| **RQ4** | Đường cong đảo ngược (10Y − 2Y < 0) có báo trước suy thoái trong 12 tháng không? | **Xếp hạng rủi ro tốt** (AUC **0.82**) nhưng **xác suất chưa chuẩn** (kém hơn việc đoán hằng số, Brier skill score **−15%**) và đã báo động sai kéo dài giai đoạn 2022–2026. |
+| **RQ4** | Đường cong đảo ngược (10Y − 2Y < 0) có báo trước suy thoái trong 12 tháng không? | **Xếp hạng rủi ro tốt** (AUC **0.82**) nhưng **xác suất chưa chuẩn** (Brier skill score **−15%**). Stress window 2022–2026 cho thấy nhiều tháng xác suất cao nhưng **chỉ các tháng đã đủ 12 tháng tương lai mới có nhãn hoàn chỉnh**, nên không nên gọi toàn bộ 2026 là “báo động sai”. |
 | **RQ5** | Cùng phương pháp áp cho Việt Nam được không? | **Một phần.** Ba nhân tố mô tả được đường cong VN, nhưng λ tốt nhất khác (**0.40** so với 0.7308 của Mỹ) và các nhân tố không đi cùng Mỹ. Dữ liệu là giá tham khảo, không phải đường cong chính thức. |
 
 > **Cách đọc "bp":** 1 bp (điểm cơ bản) = 0.01 điểm phần trăm. 9 bp = 0.09%.
@@ -59,47 +59,92 @@ Chưa biết chọn gì thì bắt đầu bằng **Lối A**. Người chưa t�
 
 ## 3. Lối A. Chỉ xem kết quả (dashboard, 5 phút)
 
-Dashboard ("Yield Curve Lab") là một trang web nhỏ chạy ngay trên máy bạn. Nó đã chứa sẵn dữ liệu cần thiết (thư mục `dashboard/data/`), nên bạn **không cần** chạy phân tích trước.
+Dashboard (**Yield Curve Lab**) là một website tĩnh chạy ngay trên máy. Dữ liệu cần để xem kết quả đã nằm trong `dashboard/data/`, vì vậy bạn **không cần chạy lại mô hình** chỉ để mở dashboard.
 
 ### Bước 1: Cài Python (một lần)
-- Tải Python **3.10 trở lên** tại <https://www.python.org/downloads/>.
-- **Windows:** khi cài, nhớ tick **"Add python.exe to PATH"**.
-- Kiểm tra: mở cửa sổ dòng lệnh (Windows: bấm phím Windows, gõ `PowerShell`, Enter; macOS: mở *Terminal*) rồi gõ `python --version`. Trên macOS/Linux dùng `python3` nếu `python` không chạy.
+- Cần Python **3.10 trở lên**.
+- Windows: khi cài Python, nên tick **Add python.exe to PATH**.
+- Kiểm tra bằng `py --version` hoặc `python --version`.
 
-### Bước 2: Tải dự án về
-- Dễ nhất: trên trang GitHub bấm nút xanh **Code** → **Download ZIP**, rồi giải nén.
-- Hoặc dùng git: `git clone https://github.com/Levianth146/Yield-curve-modeling-and-Forecasting`
+### Bước 2: Tải và giải nén đầy đủ dự án
+- GitHub: **Code → Download ZIP → Extract All**.
+- Hoặc: `git clone https://github.com/Levianth146/Yield-curve-modeling-and-Forecasting`
 
-### Bước 3: Bật dashboard
-Trong cửa sổ dòng lệnh, đi vào thư mục dự án rồi vào `dashboard`, và bật một máy chủ web nhỏ:
+> Không chạy dashboard trực tiếp bên trong file ZIP và không bấm đúp `dashboard/index.html`. Dashboard dùng ES modules/workers nên cần một local HTTP server.
 
-```bash
-cd Yield-curve-modeling-and-Forecasting/dashboard
-python -m http.server 8765
+### Bước 3: Mở dashboard — chọn một trong các cách sau
+
+#### Cách 1 — Windows, dễ nhất: `Mo_dashboard.bat` (khuyến nghị)
+Tại **thư mục gốc của dự án**, bấm đúp:
+
+```text
+run.bat
 ```
 
-(Nếu cần, dùng `python3` thay `python`. Cứ để cửa sổ này mở, nó chính là máy chủ.)
+Launcher sẽ:
+1. tìm `py` hoặc `python`;
+2. chạy server **no-cache** để tránh trình duyệt giữ JS/CSS cũ;
+3. tự mở dashboard trong trình duyệt;
+4. ưu tiên cổng **8765**; nếu cổng này bận, tự chọn cổng kế tiếp còn trống.
 
-### Bước 4: Mở
-Mở trình duyệt và vào **<http://127.0.0.1:8765/>**.
-Muốn tắt: bấm vào cửa sổ dòng lệnh và nhấn `Ctrl + C`.
+Giữ cửa sổ server mở trong lúc dùng dashboard. Nhấn `Ctrl + C` để tắt.
+
+#### Cách 2 — PowerShell / Terminal, chạy từ thư mục gốc
+Đây là cách tương đương với file `.bat`, nhưng bạn nhìn thấy rõ lệnh đang chạy:
+
+```powershell
+py scripts\serve_dashboard.py
+```
+
+Nếu máy không có lệnh `py`:
+
+```powershell
+python scripts\serve_dashboard.py
+```
+
+Muốn mở kèm self-test:
+
+```powershell
+py scripts\serve_dashboard.py --selftest
+```
+
+Muốn chọn cổng khác:
+
+```powershell
+py scripts\serve_dashboard.py --port 8766
+```
+
+Server sẽ in **URL chính xác** ra màn hình; hãy dùng URL đó nếu cổng 8765 đang bận.
+
+#### Cách 3 — HTTP server cơ bản (phương án dự phòng)
+Nếu chỉ cần một server tĩnh đơn giản:
+
+```powershell
+cd dashboard
+py -m http.server 8765
+```
+
+rồi mở `http://127.0.0.1:8765/`.
+
+Cách này **không có cơ chế no-cache** và không tự mở trình duyệt, nên khi đang chỉnh giao diện hãy ưu tiên Cách 1 hoặc Cách 2.
 
 ### Cách dùng dashboard
 Các tab trên cùng đi theo đúng thứ tự của nghiên cứu:
 
 | Tab | Trả lời câu hỏi | Thử làm gì |
 |---|---|---|
-| **Hôm nay** | Đường cong bây giờ trông thế nào, có đảo ngược không? | Kéo thanh ngày về 2007, 2019, 2022 và xem hình dạng đổi. |
-| **Nhân tố** | Level / Slope / Curvature mô tả đường cong ra sao? | Đổi λ và xem các nhân tố có giữ ổn định không. |
-| **Dự báo** | AR có thắng "tháng sau = tháng này" không? | Đổi nhân tố và chân trời (1/3/6/12 tháng); đọc ô *p-value*. |
-| **Cú sốc Fed** | Fed bất ngờ đổi lãi suất thì đường cong ra sao? | Đổi số độ trễ và thứ tự biến; vùng tô là khoảng bất định 95%. |
-| **Suy thoái** | Đường cong đảo ngược có báo suy thoái không? | Kéo ngưỡng quyết định và xem đánh đổi giữa bắt đúng và báo nhầm. |
-| **Việt Nam** | Phương pháp có dùng được cho Việt Nam không? | So λ của Việt Nam với λ của Mỹ. |
-| **Tổng kết** | Kết luận nào vững, kết luận nào mong manh? | Chỉ có hai phút thì đọc tab này. |
+| **Tổng quan** | Đường cong ở ngày đang xem trông thế nào và nền tảng lý thuyết để đọc nó là gì? | Kéo thanh ngày về 2007, 2019, 2022; đọc A1–A6 để nối hình dạng đường cong với Level / Slope / Curvature. |
+| **Nhân tố** | Level / Slope / Curvature mô tả đường cong ra sao? | Đổi λ và phương pháp ước lượng để xem độ ổn định của ba nhân tố. |
+| **Dự báo** | AR có thắng “tháng sau = tháng này” không? | Đổi nhân tố và chân trời 1/3/6/12 tháng; đọc RMSE và kiểm định DM. |
+| **Cú sốc Fed** | Đường cong phản ứng ra sao sau một cú sốc lãi suất Fed trong VAR? | Đổi số độ trễ và thứ tự biến; vùng tô là khoảng bất định 95%. |
+| **Suy thoái** | Spread có giúp xếp hạng rủi ro suy thoái không? | Kéo ngưỡng quyết định và theo dõi đánh đổi giữa bắt đúng và báo nhầm. |
+| **Việt Nam** | Nelson–Siegel có mô tả được dữ liệu lợi suất Việt Nam không? | So λ của Việt Nam với λ của Mỹ và xem cảnh báo chất lượng dữ liệu. |
+| **Tổng kết** | Năm kết luận chính đang được dữ liệu ủng hộ đến đâu? | Dùng trang này để ôn nhanh trước khi thuyết trình. |
+| **Phương pháp** | Dữ liệu, công thức và cách tái lập kết quả nằm ở đâu? | Dùng như phụ lục kỹ thuật khi cần giải thích mô hình hoặc phản biện. |
 
-Mọi trang có cùng bố cục: **câu hỏi → kết luận một câu → biểu đồ → "nghĩa là gì / độ tin cậy / giới hạn"**. Thiết lập bạn chọn được lưu vào địa chỉ web, nên chỉ cần sao chép đường link là gửi được đúng màn hình đang xem.
+Trang **Tổng quan** có thêm khối **Cơ sở lý thuyết A1–A6** và chỉ giữ phần **Độ tin cậy / Giới hạn** ở cuối để tránh lặp ý. Các trang phân tích còn lại dùng cấu trúc **câu hỏi → kết luận → biểu đồ/bảng → diễn giải → độ tin cậy/giới hạn**, và công thức tách phần **“Trong đó”** theo từng ký hiệu trên từng dòng.
 
-> Thêm `?selftest=1` vào địa chỉ (`http://127.0.0.1:8765/?selftest=1`) để dashboard tự kiểm tra phép tính của nó với kết quả Python. Banner xanh nghĩa là khớp.
+> Self-test thủ công: thêm `selftest=1` vào query string, hoặc đơn giản chạy `py scripts\serve_dashboard.py --selftest`. Banner đỏ nghĩa là phép tính JavaScript không khớp golden/Python; không có banner đỏ nghĩa là self-test đã qua.
 
 ---
 
@@ -150,9 +195,10 @@ Các tuỳ chọn hữu ích:
 ### Bước 5: Cập nhật dashboard bằng số mới
 ```bash
 python scripts/export_dashboard_data.py          # thêm --skip-irf để cập nhật nhanh
-cd dashboard
-python -m http.server 8765
+python scripts/serve_dashboard.py                 # server no-cache, tự mở trình duyệt
 ```
+
+Nếu chỉ muốn server tĩnh cơ bản, có thể dùng `cd dashboard` rồi `python -m http.server 8765`.
 
 ### Kiểm tra tự động
 ```bash
@@ -259,6 +305,7 @@ Quy tắc: cột đầu là ngày `YYYY-MM-DD`; các cột còn lại là kỳ h
 ```
 Yield-curve-modeling-and-Forecasting/
 ├── README.md / README.vi.md     ← bạn đang ở đây (English / Tiếng Việt)
+├── Mo_dashboard.bat             ← Windows: bấm đúp để mở dashboard
 ├── requirements.txt             ← thư viện Python
 ├── src/                         ← phần logic (sửa code ở đây)
 │   ├── config.py                  thiết lập: ngày, kỳ hạn, λ, độ trễ
@@ -272,6 +319,7 @@ Yield-curve-modeling-and-Forecasting/
 ├── scripts/
 │   ├── run_pipeline.py            ▶ chạy tất cả
 │   ├── export_dashboard_data.py   ghi dữ liệu cho dashboard
+│   ├── serve_dashboard.py         mở dashboard bằng server no-cache
 │   ├── check_dashboard_parity.py  kiểm tra Python so với dashboard
 │   ├── build_vn_yields.py         ghép các file CSV Việt Nam
 │   └── make_interactive.py        biểu đồ tương tác
@@ -292,9 +340,9 @@ Yield-curve-modeling-and-Forecasting/
 |---|---|
 | `python` không được nhận ra | Cài lại Python và tick **Add to PATH**, hoặc thử `py` (Windows) / `python3` (macOS, Linux). |
 | `pip install` lỗi | Cập nhật pip: `python -m pip install --upgrade pip`. Dùng môi trường ảo (Bước 1 của Lối B). |
-| Dashboard trắng trang hoặc báo "không tải được" | Mở qua `http://127.0.0.1:8765/`, **không** bấm đúp vào `index.html` (trình duyệt chặn module khi mở từ ổ đĩa). |
-| "Address already in use" / cổng 8765 bận | Dùng cổng khác: `python -m http.server 8766`, rồi mở `…:8766`. |
-| Đã sửa code mà dashboard vẫn như cũ | Tải lại cứng (`Ctrl + Shift + R`). Trình duyệt lưu đệm script. |
+| Dashboard trắng trang hoặc báo "không tải được" | Chạy lại từ thư mục gốc bằng `py scripts\serve_dashboard.py`. **Không** bấm đúp `dashboard/index.html`. |
+| Cổng 8765 đang bận | `serve_dashboard.py` tự thử cổng kế tiếp. Nếu muốn chỉ định: `py scripts\serve_dashboard.py --port 8766`. |
+| Đã sửa code mà dashboard vẫn như cũ | Ưu tiên `Mo_dashboard.bat` hoặc `py scripts\serve_dashboard.py` vì server gửi header no-cache. Nếu tab cũ vẫn mở, đóng tab đó rồi dùng URL server vừa in ra. |
 | Tải FRED thất bại | Kiểm tra mạng, hoặc đặt `FRED_API_KEY`. Quy trình sẽ dùng CSV công khai và file đã lưu trong `data/`. |
 | Chạy quá lâu | Thêm `--skip-irf-export` để chạy nhanh. |
 | Banner self-test màu đỏ | Chạy `python scripts/run_pipeline.py` rồi `python scripts/export_dashboard_data.py` để dữ liệu dashboard và Python cùng một lần chạy. |

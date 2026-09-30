@@ -28,18 +28,21 @@ export async function mountVietnam(ctx) {
     eyebrow: vi ? "06 · RQ5 · Việt Nam" : "06 · RQ5 · Vietnam",
     title: t(lang, "h2Vn"),
     status: "fragile",
+    basis: vi
+      ? "dữ liệu chỉ gồm 7 kỳ hạn từ 1 đến 15 năm trong giai đoạn 01/2018–09/2026 (khoảng 105 tháng), không có kỳ hạn dưới 1 năm và trên 15 năm; phần kiểm định dự báo chỉ có 21–32 quan sát; nguồn Investing.com là giá tham khảo, với tỷ lệ ngày giá không đổi tăng mạnh từ năm 2024. Vì vậy các kết luận về Việt Nam chỉ mang tính minh họa cho phần mở rộng."
+      : "the data cover only 7 maturities from 1 to 15 years over 01/2018–09/2026 (about 105 months), with no maturities below 1 year or above 15 years; the forecast test has only 21–32 observations; Investing.com quotes are reference prices, with a sharply rising share of unchanged-price days since 2024. Vietnam results are therefore illustrative.",
     lang,
     headline: vi
-      ? "Ba nhân tố Nelson–Siegel mô tả được đường cong Việt Nam, nhưng hành xử <b>khác</b> Mỹ."
+      ? "Ba nhân tố Nelson–Siegel mô tả được đường cong Việt Nam, nhưng vận động <b>khác</b> Mỹ."
       : "Nelson–Siegel factors describe Vietnam’s curve, but behaviour <b>differs</b> from the US.",
     body: vi
-      ? `<p>${term("lambda", lang).outerHTML} tối ưu của VN là <span class="num">${fmt.n(lamVn, 2)}</span> (Mỹ 0.7308), cho sai số <span class="num">${fmt.n((best?.r ?? NaN) * 100, 1)} bp</span>; nếu dùng λ của Mỹ, sai số là <span class="num">${fmt.n((atUs?.r ?? NaN) * 100, 1)} bp</span>. Tương quan giữa nhân tố VN và Mỹ trên <span class="num">${nCommon}</span> tháng chung: Level <span class="num">${fmt.n(cor.corr_level, 2)}</span>, Slope <span class="num">${fmt.n(cor.corr_slope, 2)}</span>, Curvature <span class="num">${fmt.n(cor.corr_curvature, 2)}</span> (theo mức); theo thay đổi hàng tháng <span class="num">${fmt.n(cor.corr_level_diff, 2)}</span> / <span class="num">${fmt.n(cor.corr_slope_diff, 2)}</span> / <span class="num">${fmt.n(cor.corr_curvature_diff, 2)}</span>. Ở 12 ô AR so với random walk chỉ <span class="num">${arSig}</span> ô p &lt; 0.05.</p>`
+      ? `<p>${term("lambda", lang).outerHTML} tối ưu của VN là <span class="num">${fmt.n(lamVn, 2)}</span> (Mỹ 0.7308), cho sai số <span class="num">${fmt.n((best?.r ?? NaN) * 100, 1)} bp</span>; nếu dùng λ của Mỹ, sai số là <span class="num">${fmt.n((atUs?.r ?? NaN) * 100, 1)} bp</span>. Tương quan giữa nhân tố VN và Mỹ trên <span class="num">${nCommon}</span> tháng chung: Level <span class="num">${fmt.n(cor.corr_level, 2)}</span>, Slope <span class="num">${fmt.n(cor.corr_slope, 2)}</span>, Curvature <span class="num">${fmt.n(cor.corr_curvature, 2)}</span> (theo mức); theo thay đổi hàng tháng <span class="num">${fmt.n(cor.corr_level_diff, 2)}</span> / <span class="num">${fmt.n(cor.corr_slope_diff, 2)}</span> / <span class="num">${fmt.n(cor.corr_curvature_diff, 2)}</span>. Ở 12 ô AR so với Random Walk chỉ <span class="num">${arSig}</span> ô p &lt; 0.05.</p>`
       : `<p>VN best ${term("lambda", lang).outerHTML} is <span class="num">${fmt.n(lamVn, 2)}</span> (US 0.7308), RMSE <span class="num">${fmt.n((best?.r ?? NaN) * 100, 1)} bp</span> vs <span class="num">${fmt.n((atUs?.r ?? NaN) * 100, 1)} bp</span> at US λ. Level/Slope/Curvature correlations over <span class="num">${nCommon}</span> shared months: <span class="num">${fmt.n(cor.corr_level, 2)}</span> / <span class="num">${fmt.n(cor.corr_slope, 2)}</span> / <span class="num">${fmt.n(cor.corr_curvature, 2)}</span> in levels; diffs <span class="num">${fmt.n(cor.corr_level_diff, 2)}</span> / <span class="num">${fmt.n(cor.corr_slope_diff, 2)}</span> / <span class="num">${fmt.n(cor.corr_curvature_diff, 2)}</span>. Only <span class="num">${arSig}</span>/12 AR vs RW cells have p &lt; 0.05.</p>`,
   });
 
   viz.append(el("p", { class: "callout", html: vi
-    ? "Nguồn Investing.com, giá tham khảo — không phải đường cong chính thức; 7 kỳ hạn 1–15Y."
-    : "Investing.com reference quotes — not the official curve; 7 mats 1–15Y." }));
+    ? "Nguồn dữ liệu: lợi suất trái phiếu Chính phủ Việt Nam từ Investing.com (giá tham khảo, không phải đường cong chính thức của HNX hay VBMA), 7 kỳ hạn từ 1 đến 15 năm, giai đoạn 01/2018–09/2026."
+    : "Data: Vietnamese government bond yields from Investing.com (reference quotes, not the official HNX or VBMA curve), 7 maturities from 1 to 15 years, 01/2018–09/2026." }));
 
   if (Number.isFinite(cor.corr_level)) {
     // T4: full labels for level / Δ correlations
@@ -144,12 +147,12 @@ export async function mountVietnam(ctx) {
   }
 
   fAr.append(
-    el("h3", { class: "fig-title" }, vi ? "AR so với random walk ở Việt Nam" : "AR versus random walk in Vietnam"),
+    el("h3", { class: "fig-title" }, vi ? "AR so với Random Walk ở Việt Nam" : "AR versus Random Walk in Vietnam"),
     el("p", { class: "fig-sub" }, vi ? "Mỗi ô chỉ 21–32 quan sát ngoài mẫu — sức kiểm định thấp." : "Each cell has only 21–32 OOS points — low power."),
     table(
       [
         { h: vi ? "Nhân tố" : "Factor", f: (r) => label("factor", r.factor, lang) },
-        { h: vi ? "Chân trời" : "Horizon", f: (r) => label(`h.${r.horizon}`, lang) },
+        { h: vi ? "Tầm dự báo" : "Horizon", f: (r) => label(`h.${r.horizon}`, lang) },
         { h: "n", f: (r) => r.n_obs },
         { h: "AR/RW", f: (r) => fmt.n(r.RMSE_AR / r.RMSE_RW, 3) },
         { h: "p", f: (r) => fmt.p(Number(r.DM_pvalue)) },

@@ -4,6 +4,7 @@ import { el, fmt, figure, figs, strip, axisY, endLabels, lineChart, tip } from "
 import { pageHero } from "../ui/conclusion.js";
 import { explainBox, methodDetails, resetLink } from "../ui/glossary.js";
 import { readingSteps } from "../ui/formulaCard.js";
+import { theorySection } from "../content/theory.js";
 import { modelFormula } from "../content/attach.js";
 import { fill, pageCopy } from "../content/pages.js";
 import { t } from "../i18n.js";
@@ -50,9 +51,9 @@ export async function mountToday(ctx) {
     : (vi ? "dốc lên" : "upward-sloping");
 
   pageHero(heroEl, {
-    eyebrow: vi ? `01 · Hôm nay · ${fmt.dateText(today)}` : `01 · Today · ${fmt.dateISO(today)}`,
+    eyebrow: vi ? `01 · Tổng quan · ${fmt.dateText(today)}` : `01 · Overview · ${fmt.dateISO(today)}`,
     title: t(lang, "h2Today"),
-    status: "fragile",
+    status: null,
     lang,
     headline: vi
       ? `Đường cong đang <b>${shape}</b>: lãi suất 10 năm <span class="num">${fmt.n(y10)}</span>% ${upward || inverted ? (s102 >= 0 ? "cao hơn" : "thấp hơn") : "gần bằng"} 2 năm <span class="num">${fmt.n(y2)}</span>% khoảng <span class="num">${fmt.n(Math.abs(s102))}</span> điểm %, và ${s103 >= 0 ? "cao hơn" : "thấp hơn"} 3 tháng khoảng <span class="num">${fmt.n(Math.abs(s103))}</span> điểm %.`
@@ -144,12 +145,14 @@ export async function mountToday(ctx) {
     `12-month probit probability = <span class="num">${fmt.pct(pRec)}</span> (ranking signal, not calibrated).`,
   ]));
 
-  viz.append(modelFormula(lang, "ns", vi
-    ? `Hôm nay: Level ≈ ${fmt.n(fitToday?.level)}, Slope ≈ ${fmt.n(fitToday?.slope)}, Curvature ≈ ${fmt.n(fitToday?.curvature)}, RMSE ${fmt.n(rmseBp, 1)} bp.`
-    : `Today: Level ≈ ${fmt.n(fitToday?.level)}, Slope ≈ ${fmt.n(fitToday?.slope)}, Curvature ≈ ${fmt.n(fitToday?.curvature)}, RMSE ${fmt.n(rmseBp, 1)} bp.`));
+  viz.append(theorySection(lang, {
+    date: vi ? fmt.dateText(today) : fmt.dateISO(today),
+    level: fmt.n(fitToday?.level), slope: fmt.n(fitToday?.slope), curv: fmt.n(fitToday?.curvature),
+    rmse: fmt.n(rmseBp, 1), spread: fmt.sg(s102),
+  }));
 
+  // Trang Tổng quan đã có khối Cơ sở lý thuyết phía trên, nên không lặp lại “Nghĩa là gì”.
   viz.append(explainBox(lang, {
-    meaning: `<p>${copy.meaning.join("</p><p>")}</p>`,
     confidence: fill(copy.confidence, { rmse: fmt.n(rmseBp, 1) }),
     limits: copy.limits,
   }));

@@ -199,3 +199,356 @@ details.drawer[open] summary{margin-bottom:12px}
 }
 
 .fig-sub:empty,.fig-note:empty{display:none}
+
+/* ============================================================
+   Bản chỉnh sửa giao diện (2026-09-30): rộng hơn, chữ lớn hơn,
+   thanh điều khiển gọn hơn. Giữ nguyên hệ màu và phông của tác giả.
+   ============================================================ */
+html{font-size:17px}
+body{font-size:1rem}
+.app-header,.nav-benches,.layout-bench,.app-footer{max-width:1360px}
+.nav-benches a{font-size:.9rem;padding:12px 16px 11px 0}
+.nav-benches a .no{font-size:.75rem}
+.hero h2{font-size:clamp(1.5rem,2.4vw,2rem);max-width:none}
+.conclusion-headline{font-size:1.32rem;max-width:none}
+.conclusion-body{font-size:1rem;max-width:none}
+.conclusion-basis{font-size:.86rem;color:var(--ink-secondary);line-height:1.45}
+.conclusion-basis b{color:var(--ink)}
+.fig-title{font-size:1.2rem}
+.fig-sub,.fig-note,.fig-look{font-size:.86rem;max-width:none}
+.axis text{font-size:12px}
+.lbl{font-size:12.5px}
+.lbl.mono{font-size:11.5px}
+.tbl{font-size:.86rem}
+.tbl th{font-size:.8rem}
+.strip .k,.strip .d{font-size:.86rem}
+.strip .v{font-size:1.75rem}
+.drawer-body{font-size:.95rem;max-width:none}
+.explain-box{font-size:.95rem}
+/* Thanh điều khiển: một khối mỏng, không chiếm nửa màn hình */
+.panel-controls{padding:8px 0;gap:6px 22px;margin:4px 0 16px}
+.control-group>label,.ctl-label{font-size:.8rem;margin-bottom:2px}
+.chip{font-size:.8rem;padding:2px 10px}
+.curve-ctl-grid{display:flex;flex-direction:column;gap:6px;width:100%}
+.curve-ctl-row{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:flex-end}
+.curve-ctl-row .control-group.grow{flex:1 1 260px}
+/* Khối lý thuyết (trang 1) và thẻ công thức */
+.theory{margin:28px 0 8px;border-top:1px solid var(--rule);padding-top:18px}
+.theory>h3{font-family:var(--font-serif);font-size:1.35rem;font-weight:560;margin:0 0 4px}
+.theory>.theory-sub{color:var(--ink-muted);font-size:.9rem;margin:0 0 14px}
+.theory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.theory-card{background:var(--surface);border:1px solid var(--hairline);padding:16px 20px;border-radius:4px}
+.theory-card h4{font-family:var(--font-serif);font-size:1.1rem;font-weight:600;margin:0 0 8px}
+.theory-card h4 .tag{font-family:var(--font-mono);font-size:.78rem;color:var(--ink-muted);margin-right:8px}
+.theory-card p{margin:6px 0;line-height:1.55;font-size:.95rem;color:var(--ink-secondary)}
+.theory-card .katex-display{margin:10px 0}
+.formula-card h3{font-size:1.15rem}
+.formula-card .formula-where{font-size:.95rem;line-height:1.6;color:var(--ink-secondary);margin:6px 0 0}
+.formula-card .formula-read{font-size:.95rem}
+@media (max-width:900px){.theory-grid{grid-template-columns:1fr}}
+/* Trang Tổng kết: thẻ lớn hơn, dễ đọc */
+.claims-grid,.summary-grid{font-size:1rem}
+.conclusion-neutral{border-left-color:var(--hairline)}
+/* Trang Tổng kết: thẻ lớn hơn, chữ dễ đọc */
+.claim-grid{grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:20px}
+.claim-card{padding:18px 22px}
+.claim-card .st{font-size:.9rem}
+.claim-card p{font-size:.98rem;line-height:1.55}
+.claim-card .ev{font-size:.95rem;color:var(--ink-secondary)}
+.claim-card a{font-size:.95rem}
+[hidden]{display:none!important}
+
+
+/* ============================================================
+   UI V2 — Tổng quan, cơ sở lý thuyết và công thức
+   ============================================================ */
+
+/* Trang Tổng quan: hai cột cuối chỉ còn Độ tin cậy + Giới hạn. */
+.explain-box.explain-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* ---------- Cơ sở lý thuyết: hierarchy thay vì 6 card ngang hàng ---------- */
+.theory-v2{
+  margin:34px 0 12px;
+  padding-top:24px;
+  border-top:1px solid var(--rule);
+}
+.theory-heading{
+  display:grid;
+  grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);
+  gap:24px;
+  align-items:end;
+  margin-bottom:16px;
+}
+.theory-heading h3{
+  margin:0;
+  font-family:var(--font-serif);
+  font-size:1.5rem;
+  font-weight:600;
+  letter-spacing:-.015em;
+}
+.theory-heading p{
+  margin:0;
+  max-width:72ch;
+  color:var(--ink-muted);
+  font-size:.9rem;
+  line-height:1.5;
+}
+.theory-block{
+  border:1px solid var(--hairline);
+  background:var(--surface);
+  border-radius:6px;
+  padding:18px 20px;
+  margin:0 0 14px;
+}
+.theory-title{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  margin-bottom:10px;
+}
+.theory-title h4{
+  margin:0;
+  font-family:var(--font-serif);
+  font-size:1.08rem;
+  font-weight:600;
+  letter-spacing:-.01em;
+}
+.theory-tag{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:34px;
+  padding:2px 7px;
+  border:1px solid var(--hairline);
+  border-radius:999px;
+  color:var(--ink-muted);
+  font-family:var(--font-mono);
+  font-size:.7rem;
+  letter-spacing:.04em;
+}
+.theory-block>p,
+.theory-lead-text{
+  margin:6px 0;
+  max-width:90ch;
+  color:var(--ink-secondary);
+  font-size:.93rem;
+  line-height:1.58;
+}
+.theory-lead{
+  display:grid;
+  grid-template-columns:minmax(260px,.75fr) minmax(0,1.25fr);
+  gap:24px;
+  align-items:start;
+  padding-top:16px;
+  padding-bottom:16px;
+}
+.theory-lead .theory-title{margin:0}
+.theory-lead>p{margin:0;max-width:none}
+
+/* A2 là trọng tâm: công thức và ký hiệu tách thành hai vùng rõ ràng. */
+.theory-model{padding:20px 22px}
+.theory-model-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);
+  gap:22px;
+  align-items:start;
+  margin-top:14px;
+}
+.theory-equation{
+  min-width:0;
+  padding:18px 16px;
+  border:1px solid var(--grid);
+  background:var(--paper);
+  border-radius:5px;
+  overflow-x:auto;
+}
+.theory-equation.compact{padding:12px 10px;margin:12px 0}
+.theory-equation .katex-display{margin:0}
+.theory-symbols{
+  padding-left:18px;
+  border-left:1px solid var(--hairline);
+}
+.theory-mini-label,
+.formula-section-label{
+  color:var(--ink);
+  font-family:var(--font-sans);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.theory-symbol-list{margin-top:6px}
+.theory-symbol-row{
+  display:grid;
+  grid-template-columns:minmax(86px,.34fr) minmax(0,1.66fr);
+  gap:12px;
+  padding:7px 0;
+  border-bottom:1px solid var(--grid);
+  align-items:baseline;
+}
+.theory-symbol-row:last-child{border-bottom:0}
+.theory-symbol-key{font-size:.9rem;white-space:nowrap}
+.theory-symbol-meaning{color:var(--ink-secondary);font-size:.84rem;line-height:1.4}
+
+/* A3: ba nhân tố cùng một hàng, mỗi card chỉ giữ 3 dòng cần thiết. */
+.factor-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.factor-card{
+  border-top:2px solid var(--rule);
+  padding:12px 2px 4px;
+  min-width:0;
+}
+.factor-head{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:8px;
+  align-items:baseline;
+}
+.factor-key{
+  display:inline-flex;
+  width:24px;
+  height:24px;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--hairline);
+  border-radius:50%;
+  font-family:var(--font-mono);
+  font-size:.72rem;
+  color:var(--ink-muted);
+}
+.factor-head strong{font-family:var(--font-serif);font-size:1rem}
+.factor-value{font-size:.86rem;font-weight:600}
+.factor-body{margin-top:8px;color:var(--ink-secondary);font-size:.86rem}
+.factor-detail{margin-top:3px;color:var(--ink-muted);font-size:.72rem}
+.theory-foot{
+  margin:12px 0 0!important;
+  padding-top:10px;
+  border-top:1px solid var(--grid);
+  color:var(--ink-secondary)!important;
+  font-size:.84rem!important;
+  line-height:1.45!important;
+}
+
+/* A4 + A5: hai khối chẩn đoán ngắn nằm cạnh nhau. */
+.theory-pair{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.theory-compact{margin:0 0 14px}
+.spread-states{display:grid;gap:5px;margin:10px 0 0}
+.spread-state{
+  display:grid;
+  grid-template-columns:110px 90px minmax(0,1fr);
+  gap:10px;
+  align-items:baseline;
+  padding:6px 0;
+  border-bottom:1px solid var(--grid);
+  font-size:.8rem;
+}
+.spread-state:last-child{border-bottom:0}
+.spread-state>span:last-child{color:var(--ink-secondary)}
+.spread-range{color:var(--ink-muted);font-size:.72rem}
+
+/* A6: roadmap thay vì đoạn văn dài. */
+.theory-roadmap-block{padding-bottom:16px}
+.theory-roadmap{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-top:12px;
+}
+.roadmap-step{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:9px;
+  align-items:start;
+  padding:10px 12px;
+  border:1px solid var(--grid);
+  background:var(--paper);
+  border-radius:4px;
+}
+.roadmap-no{color:var(--ink-muted);font-size:.7rem;padding-top:2px}
+.roadmap-step strong{font-size:.84rem}
+.roadmap-step p{margin:3px 0 0;color:var(--ink-secondary);font-size:.78rem;line-height:1.38}
+
+/* ---------- Công thức các trang: một ký hiệu / một dòng ---------- */
+.formula-card{
+  margin:24px 0;
+  padding:20px 22px;
+  border:1px solid var(--hairline);
+  background:var(--surface);
+  border-radius:6px;
+}
+.formula-card h3{
+  margin:0 0 14px;
+  font-family:var(--font-serif);
+  font-size:1.15rem;
+  font-weight:600;
+}
+.formula-intro{margin:0 0 10px;color:var(--ink-secondary);font-size:.9rem;line-height:1.5}
+.formula-equations{
+  padding:14px 16px;
+  border:1px solid var(--grid);
+  background:var(--paper);
+  border-radius:5px;
+  overflow-x:auto;
+}
+.formula-equations-multi{display:grid;gap:8px}
+.formula-equations .katex-display{margin:0}
+.formula-symbols{
+  display:grid;
+  grid-template-columns:110px minmax(0,1fr);
+  gap:14px;
+  align-items:start;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid var(--hairline);
+}
+.formula-symbol-list{min-width:0}
+.formula-symbol-row{
+  display:grid;
+  grid-template-columns:minmax(115px,.32fr) minmax(0,1.68fr);
+  gap:16px;
+  align-items:baseline;
+  padding:7px 0;
+  border-bottom:1px solid var(--grid);
+}
+.formula-symbol-row:last-child{border-bottom:0}
+.formula-symbol-key{white-space:nowrap;font-size:.9rem}
+.formula-symbol-meaning{color:var(--ink-secondary);font-size:.86rem;line-height:1.45}
+.formula-symbol-row-legacy{grid-template-columns:1fr}
+.formula-note{
+  display:grid;
+  grid-template-columns:110px minmax(0,1fr);
+  gap:14px;
+  align-items:start;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--grid);
+}
+.formula-note p{margin:0;max-width:94ch;color:var(--ink-secondary);font-size:.86rem;line-height:1.55}
+
+@media (max-width:1050px){
+  .theory-model-grid{grid-template-columns:1fr}
+  .theory-symbols{padding:14px 0 0;border-left:0;border-top:1px solid var(--hairline)}
+  .theory-roadmap{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:820px){
+  .theory-heading,.theory-lead,.theory-pair{grid-template-columns:1fr}
+  .theory-lead{gap:8px}
+  .factor-grid{grid-template-columns:1fr}
+  .theory-roadmap{grid-template-columns:1fr}
+  .formula-symbols,.formula-note{grid-template-columns:1fr;gap:6px}
+  .explain-box.explain-cols-2{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .theory-block,.formula-card{padding:16px}
+  .theory-symbol-row,.formula-symbol-row{grid-template-columns:1fr;gap:3px}
+  .spread-state{grid-template-columns:1fr;gap:2px}
+}

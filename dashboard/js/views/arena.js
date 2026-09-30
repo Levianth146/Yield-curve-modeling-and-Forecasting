@@ -69,19 +69,19 @@ export async function mountArena(ctx) {
 
   controls.append(
     chips({ label: vi ? "Nhân tố" : "Factor", options: FIDS.map((id) => ({ id, label: label("factor", id, lang) })), value: a.factor, onPick: (v) => { a.factor = v; chg(); } }),
-    chips({ label: vi ? "Chân trời" : "Horizon", options: HS.map((h) => ({ id: h, label: label(`h.${h}`, lang) })), value: a.h, onPick: (v) => { a.h = Number(v); chg(); } }),
-    chips({ label: vi ? "Chọn độ trễ" : "Lag choice", options: ["bic", "aic"].map((id) => ({ id, label: label("lag", id, lang) })), value: a.lag, onPick: (v) => { a.lag = v; chg(); } }),
-    chips({ label: vi ? "Cửa sổ" : "Window", options: [{ id: "expanding", label: label("window.expanding", lang) }, { id: "rolling", label: label("window.rolling", lang) }], value: a.window, onPick: (v) => { a.window = v; chg(); } }),
-    chips({ label: vi ? "Hàm mất mát" : "Loss", options: [{ id: "se", label: label("loss.se", lang) }, { id: "ae", label: label("loss.ae", lang) }], value: a.loss, onPick: (v) => { a.loss = v; chg(); } }),
-    slider({ label: vi ? "Cuối mẫu huấn luyện" : "Train ends", min: 2005, max: 2022, value: Number(a.split.slice(0, 4)), format: (v) => v + "-12", onInput: (v) => { a.split = `${v}-12-31`; chg(); } }),
+    chips({ label: vi ? "Tầm dự báo" : "Horizon", options: HS.map((h) => ({ id: h, label: label(`h.${h}`, lang) })), value: a.h, onPick: (v) => { a.h = Number(v); chg(); } }),
+    chips({ label: vi ? "Tiêu chí chọn độ trễ" : "Lag criterion", options: ["bic", "aic"].map((id) => ({ id, label: label("lag", id, lang) })), value: a.lag, onPick: (v) => { a.lag = v; chg(); } }),
+    chips({ label: vi ? "Cách ước lượng" : "Estimation window", options: [{ id: "expanding", label: label("window.expanding", lang) }, { id: "rolling", label: label("window.rolling", lang) }], value: a.window, onPick: (v) => { a.window = v; chg(); } }),
+    chips({ label: vi ? "Thước đo sai số (kiểm định DM)" : "Error measure (DM test)", options: [{ id: "se", label: label("loss.se", lang) }, { id: "ae", label: label("loss.ae", lang) }], value: a.loss, onPick: (v) => { a.loss = v; chg(); } }),
+    slider({ label: vi ? "Năm cuối của mẫu huấn luyện" : "Last training year", min: 2005, max: 2022, value: Number(a.split.slice(0, 4)), format: (v) => v + "-12", onInput: (v) => { a.split = `${v}-12-31`; chg(); } }),
   );
   const rst = resetLink(lang, !isDefaults(), () => resetToDefaults());
   if (rst) controls.append(rst);
 
   const fPath = figure({ title: "​", sub: "", height: 320, margin: { r: 70 } });
   const fCsfe = figure({ title: "​", sub: "", height: 320, margin: { r: 60 } });
-  const fHeat = figure({ title: vi ? "Ở đâu AR và random walk khác nhau có ý nghĩa?" : "Where do AR and the random walk differ significantly?", sub: "", height: 200, margin: { l: 110, r: 10, t: 24, b: 26 } });
-  const fRat = figure({ title: vi ? "Tỷ lệ RMSE: ai nhỏ hơn?" : "RMSE ratio: who is smaller?", sub: vi ? "Trái = AR tốt hơn; phải = random walk tốt hơn." : "Left = AR better; right = random walk better.", height: 190, margin: { l: 110, r: 30, t: 20, b: 26 } });
+  const fHeat = figure({ title: vi ? "Ở đâu AR và Random Walk khác nhau có ý nghĩa?" : "Where do AR and the Random Walk differ significantly?", sub: "", height: 200, margin: { l: 110, r: 10, t: 24, b: 26 } });
+  const fRat = figure({ title: vi ? "Tỷ lệ RMSE: ai nhỏ hơn?" : "RMSE ratio: who is smaller?", sub: vi ? "Trái = AR tốt hơn; phải = Random Walk tốt hơn." : "Left = AR better; right = Random Walk better.", height: 190, margin: { l: 110, r: 30, t: 20, b: 26 } });
   viz.append(figs("two", fPath.root, fCsfe.root), el("div", { style: "height:28px" }), figs("two", fHeat.root, fRat.root));
   const legendHost = el("div");
   viz.append(legendHost);
@@ -108,26 +108,35 @@ export async function mountArena(ctx) {
     const sp = splitIndex(fm.dates, a.split);
     const nTrain = sp + 1, nTest = cur.n;
 
-    let status = "supported", headline;
-    if (pv >= 0.05) {
-      headline = vi
-        ? `AR <b>không</b> dự báo tốt hơn random walk cho ${fname} ${h} tháng tới (p = <span class="num">${fmt.p(pv)}</span>).`
-        : `AR does <b>not</b> beat the random walk for ${fname} ${h} months ahead (p = <span class="num">${fmt.p(pv)}</span>).`;
-    } else if (dm.DM_stat > 0) {
-      status = "fragile";
-      headline = vi ? `Ở cấu hình này random walk thắng AR có ý nghĩa thống kê.` : `In this config the random walk beats AR significantly.`;
+    // Quy tắc C2: kết luận "AR không tốt hơn Random Walk" đứng vững khi ô đang xem không cho AR thắng có ý nghĩa
+    // và không quá 10% trong 12 ô (3 nhân tố × 4 tầm) cho AR thắng có ý nghĩa.
+    const arWinCells = cells.filter((q) => q.p < 0.05 && q.dmv < 0);
+    const arWinsHere = pv < 0.05 && dm.DM_stat < 0;
+    const shareAr = arWinCells.length / cells.length;
+    let status, headline;
+    if (arWinsHere) {
+      status = "notSupported";
+      headline = vi ? `Ở cấu hình này AR dự báo tốt hơn Random Walk có ý nghĩa thống kê.` : `In this configuration AR beats the Random Walk significantly.`;
     } else {
-      status = "fragile";
-      headline = vi ? `AR thắng random walk — nhưng xem cảnh báo đa kiểm định.` : `AR beats the random walk — but see the multiple-testing caveat.`;
+      status = shareAr > 0.1 ? "fragile" : "supported";
+      headline = pv >= 0.05
+        ? (vi ? `AR <b>không</b> dự báo tốt hơn Random Walk cho ${fname} ${h} tháng tới (p = <span class="num">${fmt.p(pv)}</span>).`
+              : `AR does <b>not</b> beat the Random Walk for ${fname} ${h} months ahead (p = <span class="num">${fmt.p(pv)}</span>).`)
+        : (vi ? `Random Walk dự báo tốt hơn AR có ý nghĩa thống kê cho ${fname} ${h} tháng tới (p = <span class="num">${fmt.p(pv)}</span>).`
+              : `The Random Walk beats AR significantly for ${fname} ${h} months ahead (p = <span class="num">${fmt.p(pv)}</span>).`);
     }
+    const basisTxt = vi
+      ? `kiểm định Diebold–Mariano ở ô đang xem cho p = ${fmt.p(pv)}${arWinsHere ? " và AR có sai số nhỏ hơn" : ""}; trong 12 ô (3 nhân tố × 4 tầm dự báo), ${arWinCells.length} ô AR tốt hơn có ý nghĩa ở mức 5% (${fmt.pct(shareAr, 0)}). Kết luận được xem là vững khi AR không thắng ở ô đang xem và không quá 10% số ô cho AR thắng.`
+      : `the Diebold–Mariano test in this cell gives p = ${fmt.p(pv)}${arWinsHere ? " with AR ahead" : ""}; across the 12 cells (3 factors × 4 horizons), ${arWinCells.length} show AR significantly better at 5% (${fmt.pct(shareAr, 0)}). The conclusion is rated robust when AR does not win here and wins in no more than 10% of cells.`;
 
     page.setConclusion({
       status,
+      basis: basisTxt,
       headline,
       body: vi
         ? `<p>${term("RW", lang).outerHTML} dự báo tháng sau bằng đúng giá trị hôm nay. Nếu mô hình phức tạp hơn mà không thắng nó về sai số, mô hình đó chưa thêm được thông tin.</p>
-           <p>${term("RMSE", lang).outerHTML} của AR là <span class="num">${fmt.n(cur.rmseAr, 3)}</span>, của random walk là <span class="num">${fmt.n(cur.rmseRw, 3)}</span>; ${term("DM", lang).outerHTML} cho p = <span class="num">${fmt.p(pv)}</span>.</p>
-           <p>Trong 12 cấu hình (3 nhân tố × 4 chân trời) có <span class="num">${sig.length}</span> ô p dưới 0.05 (kỳ vọng ~0.6 do ngẫu nhiên). Theo kỳ hạn: <span class="num">${ySig.length}</span> ô p dưới 0.05 và <span class="num">${yRw.length}</span> trong số đó random walk thắng.</p>`
+           <p>${term("RMSE", lang).outerHTML} của AR là <span class="num">${fmt.n(cur.rmseAr, 3)}</span>, của Random Walk là <span class="num">${fmt.n(cur.rmseRw, 3)}</span>; ${term("DM", lang).outerHTML} cho p = <span class="num">${fmt.p(pv)}</span>.</p>
+           <p>Trong 12 cấu hình (3 nhân tố × 4 tầm dự báo) có <span class="num">${sig.length}</span> ô p dưới 0.05 (kỳ vọng ~0.6 do ngẫu nhiên). Theo kỳ hạn: <span class="num">${ySig.length}</span> ô p dưới 0.05 và <span class="num">${yRw.length}</span> trong số đó Random Walk thắng.</p>`
         : `<p>The ${term("RW", lang).outerHTML} forecasts next month as today’s value. If a richer model cannot beat it on error, it adds no forecast information.</p>
            <p>${term("RMSE", lang).outerHTML} AR <span class="num">${fmt.n(cur.rmseAr, 3)}</span> vs RW <span class="num">${fmt.n(cur.rmseRw, 3)}</span>; ${term("DM", lang).outerHTML} p = <span class="num">${fmt.p(pv)}</span>.</p>
            <p>Across 12 configs <span class="num">${sig.length}</span> cells have p below 0.05 (~0.6 expected by chance). By maturity: <span class="num">${ySig.length}</span> significant, of which <span class="num">${yRw.length}</span> favour RW.</p>`,
@@ -135,9 +144,9 @@ export async function mountArena(ctx) {
 
     const actLbl = t(lang, "actual");
     fPath.setTitle(vi
-      ? `Từ ${a.split.slice(0, 4)}, AR không đi sát thực tế hơn random walk (RMSE <span class="num">${fmt.n(cur.rmseAr, 2)}</span> so với <span class="num">${fmt.n(cur.rmseRw, 2)}</span>)`
-      : `From ${a.split.slice(0, 4)}, AR is no closer than the random walk (RMSE <span class="num">${fmt.n(cur.rmseAr, 2)}</span> vs <span class="num">${fmt.n(cur.rmseRw, 2)}</span>)`);
-    fPath.setSub(vi ? `Đường đen = thực tế; xanh = random walk; cam = AR. Dự báo tại t cho t+${h}.` : `Black = actual; blue = random walk; orange = AR.`);
+      ? `Từ ${a.split.slice(0, 4)}, AR không đi sát thực tế hơn Random Walk (RMSE <span class="num">${fmt.n(cur.rmseAr, 2)}</span> so với <span class="num">${fmt.n(cur.rmseRw, 2)}</span>)`
+      : `From ${a.split.slice(0, 4)}, AR is no closer than the Random Walk (RMSE <span class="num">${fmt.n(cur.rmseAr, 2)}</span> vs <span class="num">${fmt.n(cur.rmseRw, 2)}</span>)`);
+    fPath.setSub(vi ? `Đường đen = thực tế; xanh = Random Walk; cam = AR. Dự báo tại t cho t+${h}.` : `Black = actual; blue = Random Walk; orange = AR.`);
 
     const dts = oos.idx.map((ti) => parseD(fm.dates[ti + h]));
     const rows = dts.map((d, i) => ({ x: d, act: oos.actual[i], ar: oos.arPred[i], rw: oos.rwPred[i], date: fm.dates[oos.idx[i] + h] }));
@@ -153,12 +162,12 @@ export async function mountArena(ctx) {
 
     let csum = 0;
     const cs = rows.map((r) => { csum += (r.rw - r.act) ** 2 - (r.ar - r.act) ** 2; return { x: r.x, y: csum, date: r.date }; });
-    fCsfe.setTitle(vi ? "Đường CSFE đi xuống nghĩa là AR tích lũy thêm sai số" : "A falling CSFE means AR keeps adding extra error");
-    fCsfe.setSub(vi ? "Σ(e²_RW − e²_AR). Đi lên = AR đang thắng." : "Σ(e²_RW − e²_AR). Up = AR ahead.");
+    fCsfe.setTitle(vi ? "Sai số tích lũy: đường đi xuống nghĩa là AR sai nhiều hơn Random Walk" : "A falling CSFE means AR keeps adding extra error");
+    fCsfe.setSub(vi ? "Tổng dồn theo thời gian của chênh lệch sai số bình phương (Random Walk trừ AR). Đường đi lên: AR đang dự báo tốt hơn; đi xuống: Random Walk tốt hơn." : "Σ(e²_RW − e²_AR). Up = AR ahead.");
     lineChart(fCsfe, {
       series: [{ values: cs, color: csum >= 0 ? "var(--series-slope)" : "var(--series-level)", width: 2 }],
       xDomain: d3.extent(cs, (r) => r.x), zero: true, yFmt: (d) => fmt.n(d, 1), bands: data.recessions.spells, hoverRows: cs,
-      hoverFmt: (r) => `<b>${fmt.dateISO(r.date)}</b><br>CSFE <span class="m">${fmt.sg(r.y, 3)}</span>`,
+      hoverFmt: (r) => `<b>${fmt.dateISO(r.date)}</b><br>${vi ? "Sai số tích lũy" : "CSFE"} <span class="m">${fmt.sg(r.y, 3)}</span>`,
       decorate: (g, { x, y, h: hh }) => {
         const l = cs[cs.length - 1];
         g.append("text").attr("class", "lbl").attr("x", 6).attr("y", 12).style("fill", "var(--ink-muted)").text(vi ? "↑ AR tốt hơn" : "↑ AR better");
@@ -213,7 +222,7 @@ export async function mountArena(ctx) {
     yieldSec.innerHTML = "";
     yieldSec.append(el("h3", { class: "fig-title" }, vi ? "Theo từng kỳ hạn" : "By maturity"));
     yieldSec.append(el("p", { class: "fig-sub" }, vi
-      ? "Ô ghi tỷ lệ RMSE AR/RW; màu xanh = AR tốt hơn, đỏ = random walk tốt hơn; viền đậm khi p dưới 0.05."
+      ? "Ô ghi tỷ lệ RMSE AR/RW; màu xanh = AR tốt hơn, đỏ = Random Walk tốt hơn; viền đậm khi p dưới 0.05."
       : "Cell shows RMSE AR/RW; blue = AR better, red = RW better; bold border when p < 0.05."));
     if (!yRows.length) {
       yieldSec.append(el("p", { class: "callout" }, vi ? "Chưa có dữ liệu dự báo theo kỳ hạn." : "Maturity forecast file missing."));
@@ -248,8 +257,8 @@ export async function mountArena(ctx) {
     stepsHost.replaceChildren(readingSteps(lang, vi ? [
       `Ta chia mẫu ở <span class="num">${a.split.slice(0, 7)}</span>: khoảng <span class="num">${nTrain}</span> tháng huấn luyện, <span class="num">${nTest}</span> điểm kiểm tra ngoài mẫu.`,
       `Mô hình AR được ước lượng với độ trễ <span class="num">${cur.p}</span> chọn bằng ${label("lag", a.lag, lang)}.`,
-      `Mỗi tháng trong phần kiểm tra, cả hai mô hình dự báo <span class="num">${h}</span> tháng tới; random walk chỉ lặp lại giá trị hiện tại.`,
-      `RMSE: AR <span class="num">${fmt.n(cur.rmseAr, 3)}</span>, random walk <span class="num">${fmt.n(cur.rmseRw, 3)}</span> — chênh khoảng <span class="num">${fmt.pct(Math.abs(cur.rmseAr / cur.rmseRw - 1), 1)}</span>.`,
+      `Mỗi tháng trong phần kiểm tra, cả hai mô hình dự báo <span class="num">${h}</span> tháng tới; Random Walk chỉ lặp lại giá trị hiện tại.`,
+      `RMSE: AR <span class="num">${fmt.n(cur.rmseAr, 3)}</span>, Random Walk <span class="num">${fmt.n(cur.rmseRw, 3)}</span> — chênh khoảng <span class="num">${fmt.pct(Math.abs(cur.rmseAr / cur.rmseRw - 1), 1)}</span>.`,
       `Kiểm định Diebold–Mariano: thống kê <span class="num">${fmt.n(dm.DM_stat, 2)}</span>, p = <span class="num">${fmt.p(pv)}</span>.`,
       pv >= 0.05
         ? `Vì p lớn hơn 0.05, ta không bác bỏ giả thuyết hai mô hình chính xác như nhau.`
@@ -257,7 +266,7 @@ export async function mountArena(ctx) {
     ] : [
       `We split at <span class="num">${a.split.slice(0, 7)}</span>: about <span class="num">${nTrain}</span> training months and <span class="num">${nTest}</span> OOS points.`,
       `AR lag <span class="num">${cur.p}</span> chosen by ${label("lag", a.lag, lang)}.`,
-      `Each test month, both models forecast <span class="num">${h}</span> months ahead; the random walk repeats today’s value.`,
+      `Each test month, both models forecast <span class="num">${h}</span> months ahead; the Random Walk repeats today’s value.`,
       `RMSE: AR <span class="num">${fmt.n(cur.rmseAr, 3)}</span>, RW <span class="num">${fmt.n(cur.rmseRw, 3)}</span>.`,
       `Diebold–Mariano statistic <span class="num">${fmt.n(dm.DM_stat, 2)}</span>, p = <span class="num">${fmt.p(pv)}</span>.`,
       pv >= 0.05 ? `With p above 0.05 we do not reject equal accuracy.` : `With p below 0.05 there is a difference — but mind multiple testing across 12 cells.`,
@@ -270,18 +279,18 @@ export async function mountArena(ctx) {
     explainHost.replaceChildren(
       explainBox(lang, {
         meaning: vi
-          ? `<p>${term("RW", lang).outerHTML} = dự báo tháng sau bằng đúng giá trị hôm nay — mô hình ngây thơ nhất.</p><p>Nếu AR không thắng nó về sai số, AR chưa thêm thông tin dự báo.</p><p>Đường ${term("CSFE", lang).outerHTML} đi xuống nghĩa là AR liên tục tích lũy thêm sai số so với random walk.</p>`
+          ? `<p>${term("RW", lang).outerHTML} = dự báo tháng sau bằng đúng giá trị hiện tại, là mô hình dự báo đơn giản nhất.</p><p>Nếu AR không có sai số nhỏ hơn Random Walk, cấu trúc tự hồi quy của các nhân tố chưa mang thêm thông tin dự báo.</p><p>Đường ${term("CSFE", lang).outerHTML} đi xuống nghĩa là AR liên tục tích lũy thêm sai số so với Random Walk.</p>`
           : `<p>The ${term("RW", lang).outerHTML} repeats today’s value — the most naïve forecast.</p><p>If AR cannot beat it on error, AR adds no forecast information.</p><p>A falling ${term("CSFE", lang).outerHTML} means AR keeps accumulating extra squared error.</p>`,
         confidence: vi
-          ? `<p>Một điểm chia mẫu; đổi thanh “Cuối mẫu huấn luyện” để thấy độ nhạy.</p><p>12 phép thử không hiệu chỉnh đa kiểm định (Bonferroni: 0.05/12 = 0.0042).</p><p>Ở 40 cặp kỳ hạn × chân trời, các ô có ý nghĩa đều nghiêng về random walk.</p>`
-          : `<p>Single split — move the train-end slider for sensitivity.</p><p>Twelve tests without multiple-testing correction (Bonferroni 0.0042).</p><p>Among maturity×horizon cells that are significant, all favour the random walk.</p>`,
+          ? `<p>Kết quả dựa trên một mốc chia mẫu; kéo thanh “Năm cuối của mẫu huấn luyện” để xem kết quả thay đổi thế nào.</p><p>12 kiểm định được thực hiện cùng lúc mà không hiệu chỉnh; với hiệu chỉnh Bonferroni, ngưỡng tương ứng là 0,05/12 ≈ 0,004.</p><p>Trong 40 ô (10 kỳ hạn × 4 tầm dự báo), mọi ô có chênh lệch ý nghĩa đều nghiêng về Random Walk.</p>`
+          : `<p>Single split — move the train-end slider for sensitivity.</p><p>Twelve tests without multiple-testing correction (Bonferroni 0.0042).</p><p>Among maturity×horizon cells that are significant, all favour the Random Walk.</p>`,
         limits: vi
           ? `<ul><li>Sai số điểm không phải giá trị kinh tế của dự báo.</li><li>Không hiệu chỉnh đa kiểm định.</li><li>Kết quả phụ thuộc điểm chia mẫu.</li></ul>`
           : `<ul><li>Point forecast error is not economic value.</li><li>No multiple-testing correction.</li><li>Results depend on the split date.</li></ul>`,
       }),
       methodDetails(lang, {
         methodHtml: vi
-          ? `<p>Cửa sổ ${label("window." + (a.window === "rolling" ? "rolling" : "expanding"), lang)}; hàm mất mát ${label("loss." + a.loss, lang)}. Chi tiết công thức và mã tái lập nằm ở tab Phương pháp.</p>`
+          ? `<p>Cách ước lượng: ${label("window." + (a.window === "rolling" ? "rolling" : "expanding"), lang).toLowerCase()}; thước đo sai số: ${label("loss." + a.loss, lang).toLowerCase()}. Chi tiết dữ liệu và mã tái lập nằm ở trang Phương pháp.</p>`
           : `<p>Window ${label("window." + (a.window === "rolling" ? "rolling" : "expanding"), lang)}; loss ${label("loss." + a.loss, lang)}. Full formulas and reproduce code live on the Methods tab.</p>`,
       }),
     );

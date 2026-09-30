@@ -97,7 +97,8 @@ export async function mountCurve(ctx) {
       if (cs.dateIdx >= n - 1) play.click();
     }, 60);
   };
-  grid.append(el("div", { class: "curve-ctl-row" }, dateSl, play));
+  const row1 = el("div", { class: "curve-ctl-row" }, dateSl, play);
+  grid.append(row1);
 
   // Row 2: event chips
   const jumps = [["2008-09-15", "Lehman"], ["2020-03-16", "COVID"], ["2022-07-05", vi ? "Đảo ngược 2022" : "2022 inversion"], ["2000-03-10", "dot-com"]];
@@ -107,7 +108,7 @@ export async function mountCurve(ctx) {
     value: null,
     onPick: (d) => { let b = 0; y.dates.forEach((x, i) => { if (x <= d) b = i; }); cs.dateIdx = b; dateSl.set(b); chg(); },
   });
-  grid.append(el("div", { class: "curve-ctl-row" }, jumpChips));
+  row1.append(jumpChips);
 
   // Row 3: λ slider with reset in label + compare chip
   const lamSl = slider({
@@ -127,7 +128,8 @@ export async function mountCurve(ctx) {
     value: cs.compareReport ? "on" : "off",
     onPick: (v) => { cs.compareReport = v === "on"; chg(); },
   });
-  grid.append(el("div", { class: "curve-ctl-row" }, lamSl, cmpChip));
+  const row2 = el("div", { class: "curve-ctl-row" }, lamSl, cmpChip);
+  grid.append(row2);
 
   // Row 4: method
   const meth = chips({
@@ -141,7 +143,8 @@ export async function mountCurve(ctx) {
     onPick: (m) => { cs.method = m; chg(); },
   });
   const rst = resetLink(lang, !isDefaults(), () => resetToDefaults());
-  grid.append(el("div", { class: "curve-ctl-row" }, meth, rst || null));
+  row2.append(meth);
+  if (rst) row2.append(rst);
   controls.append(grid);
 
   const fCurve = figure({
@@ -152,12 +155,12 @@ export async function mountCurve(ctx) {
   const fFac = figure({ title: vi ? "Ba nhân tố theo tháng (cuối tháng)" : "Monthly factors (month-end)", sub: "", height: 300, margin: { r: 78 } });
   const fDual = figure({
     title: vi ? "Sai số khớp và tương quan nhân tố theo λ" : "Fit RMSE and factor correlation vs λ",
-    sub: vi ? "Trái: RMSE (bp). Phải: tương quan với λ = 0.7308. Nhãn λ nằm dưới trục." : "Left: RMSE (bp). Right: correlation vs λ = 0.7308. λ labels sit under the axis.",
+    sub: vi ? "Trái: sai số khớp trung bình (bp) theo λ; chấm tím là λ cho sai số nhỏ nhất, chấm xanh là λ = 0,7308 của đề án. Phải: tương quan của từng nhân tố với nhân tố ước lượng bằng λ = 0,7308." : "Left: mean fit error (bp) by λ; purple = error-minimising λ, blue = the project's λ = 0.7308. Right: each factor's correlation with its λ = 0.7308 counterpart.",
     height: 300, margin: { r: 20, l: 42, b: 44 },
   });
   const fLoad = figure({
-    title: vi ? "Hàm tải Nelson–Siegel f₀, f₁, f₂" : "Nelson–Siegel loadings f₀, f₁, f₂",
-    sub: vi ? "f₀≡1; f₁(τ) và f₂(τ) tại λ đang chọn." : "f₀≡1; f₁(τ) and f₂(τ) at the chosen λ.",
+    title: vi ? "Hệ số tải của ba nhân tố theo kỳ hạn" : "Factor loadings by maturity",
+    sub: vi ? "Level có hệ số tải bằng 1 ở mọi kỳ hạn; hệ số tải của Slope giảm dần theo kỳ hạn; hệ số tải của Curvature lớn nhất ở kỳ hạn trung bình (tính tại λ đang chọn)." : "Level loads 1 everywhere; the Slope loading decays with maturity; the Curvature loading peaks at medium maturities (at the chosen λ).",
     height: 180, margin: { r: 70, t: 10, b: 28 },
   });
   viz.append(figs("two", fCurve.root, fFac.root), el("div", { style: "height:28px" }), figs("two", fDual.root, fLoad.root));
@@ -177,14 +180,20 @@ export async function mountCurve(ctx) {
     const cS = corr(mo.map((r) => r.slope), ref.map((r) => r.slope));
     const cC = corr(mo.map((r) => r.curvature), ref.map((r) => r.curvature));
 
+    const nlsMax = Math.max(N.corrLevel, N.corrSlope, N.corrCurv);
+    const nlsStatus = nlsMax < 0.6 ? "supported" : "notSupported";
+    const basisTxt = vi
+      ? `khi để λ tự do (ước lượng phi tuyến trên ${N.n} ngày), tương quan giữa nhân tố thu được và nhân tố với λ = 0,7308 chỉ là ${fmt.n(N.corrLevel, 2)} / ${fmt.n(N.corrSlope, 2)} / ${fmt.n(N.corrCurv, 2)} (Level / Slope / Curvature), ${nlsMax < 0.6 ? "đều dưới" : "không dưới"} ngưỡng 0,6. Nghĩa là λ tự do làm nhân tố thay đổi thất thường giữa các ngày, nên cố định λ là lựa chọn hợp lý.`
+      : `with λ left free (non-linear fit on ${N.n} days), the correlation between the resulting factors and the λ = 0.7308 factors is only ${fmt.n(N.corrLevel, 2)} / ${fmt.n(N.corrSlope, 2)} / ${fmt.n(N.corrCurv, 2)} (Level / Slope / Curvature), ${nlsMax < 0.6 ? "all below" : "not below"} the 0.6 threshold: a free λ makes the factors erratic, so fixing λ is justified.`;
     page.setConclusion({
-      status: "supported",
+      status: nlsStatus,
+      basis: basisTxt,
       headline: vi
         ? `Tại ${fmt.dateText(y.dates[i])}, ba nhân tố mô tả đường cong với sai số <span class="num">${fmt.bp(f.rmse)}</span>.`
         : `On ${fmt.dateISO(y.dates[i])}, three factors describe the curve within <span class="num">${fmt.bp(f.rmse)}</span>.`,
       body: vi
-        ? `${term("Level", lang).outerHTML} <span class="num">${fmt.n(f.level)}</span> là mức dài hạn, ${term("Slope", lang).outerHTML} <span class="num">${fmt.n(f.slope)}</span> nói đường cong ${slopeWord(f.slope, true)}, ${term("Curvature", lang).outerHTML} <span class="num">${fmt.n(f.curvature)}</span> nói độ võng trung hạn. Đổi λ từ 0.7308 sang <span class="num">${fmt.n(shown.l, 3)}</span>: Level/Slope gần giữ nguyên (tương quan <span class="num">${fmt.n(cL, 2)}</span>/<span class="num">${fmt.n(cS, 2)}</span>); Curvature đổi nhiều hơn (<span class="num">${fmt.n(cC, 2)}</span>). Số báo cáo NLS vs OLS (${N.n} ngày): corr ${fmt.n(N.corrLevel, 2)}/${fmt.n(N.corrSlope, 2)}/${fmt.n(N.corrCurv, 2)} — Có cơ sở. Lưới λ theo ngày ổn định hơn NLS thật.`
-        : `${term("Level", lang).outerHTML} <span class="num">${fmt.n(f.level)}</span> is the long-run level; ${term("Slope", lang).outerHTML} <span class="num">${fmt.n(f.slope)}</span> says the curve is ${slopeWord(f.slope, false)}; ${term("Curvature", lang).outerHTML} <span class="num">${fmt.n(f.curvature)}</span> is the mid hump. Moving λ from 0.7308 to <span class="num">${fmt.n(shown.l, 3)}</span>: Level/Slope nearly unchanged (corr <span class="num">${fmt.n(cL, 2)}</span>/<span class="num">${fmt.n(cS, 2)}</span>); Curvature moves more (<span class="num">${fmt.n(cC, 2)}</span>). Report NLS vs OLS (${N.n} days): corr ${fmt.n(N.corrLevel, 2)}/${fmt.n(N.corrSlope, 2)}/${fmt.n(N.corrCurv, 2)} — Supported. Per-day λ grid is stabler than true NLS.`,
+        ? `${term("Level", lang).outerHTML} <span class="num">${fmt.n(f.level)}</span> là mức dài hạn, ${term("Slope", lang).outerHTML} <span class="num">${fmt.n(f.slope)}</span> cho biết đường cong ${slopeWord(f.slope, true)}, ${term("Curvature", lang).outerHTML} <span class="num">${fmt.n(f.curvature)}</span> đo độ gồ hoặc võng của đoạn trung hạn. Khi đổi λ từ 0,7308 sang <span class="num">${fmt.n(shown.l, 3)}</span>: Level/Slope gần giữ nguyên (tương quan <span class="num">${fmt.n(cL, 2)}</span>/<span class="num">${fmt.n(cS, 2)}</span>); Curvature đổi nhiều hơn (<span class="num">${fmt.n(cC, 2)}</span>).`
+        : `${term("Level", lang).outerHTML} <span class="num">${fmt.n(f.level)}</span> is the long-run level; ${term("Slope", lang).outerHTML} <span class="num">${fmt.n(f.slope)}</span> says the curve is ${slopeWord(f.slope, false)}; ${term("Curvature", lang).outerHTML} <span class="num">${fmt.n(f.curvature)}</span> is the mid hump. Moving λ from 0.7308 to <span class="num">${fmt.n(shown.l, 3)}</span>: Level/Slope nearly unchanged (corr <span class="num">${fmt.n(cL, 2)}</span>/<span class="num">${fmt.n(cS, 2)}</span>); Curvature moves more (<span class="num">${fmt.n(cC, 2)}</span>).`,
     });
 
     fCurve.setTitle((vi ? "Đường cong " : "Curve ") + `<span class="num">${fmt.dateISO(y.dates[i])}</span> · RMSE <span class="num">${fmt.bp(f.rmse)}</span>`);
@@ -203,8 +212,8 @@ export async function mountCurve(ctx) {
       g.append("path").datum(gridT).attr("fill", "none").attr("stroke", "var(--series-level)").attr("stroke-width", 1.2).attr("stroke-dasharray", "4 3").attr("d", d3.line().x((t) => x(t)).y(() => yy(beta[0])));
       g.append("path").datum(gridT).attr("fill", "none").attr("stroke", "var(--series-curv)").attr("stroke-width", 1.2).attr("stroke-dasharray", "4 3").attr("d", d3.line().x((t) => x(t)).y((t) => yy(beta[0] + beta[1] * nsBasis(t, lam).f1)));
       const labs = [
-        { x: x(30), y: yy(beta[0]), text: "β₀", color: "var(--series-level)" },
-        { x: x(30), y: yy(beta[0] + beta[1] * nsBasis(30, lam).f1), text: "+β₁f₁", color: "var(--series-curv)" },
+        { x: x(30), y: yy(beta[0]), text: "L", color: "var(--series-level)" },
+        { x: x(30), y: yy(beta[0] + beta[1] * nsBasis(30, lam).f1), text: "L + S", color: "var(--series-curv)" },
       ];
       for (const ft of fits) {
         g.append("path").datum(gridT).attr("fill", "none").attr("stroke", ft.c).attr("stroke-width", 2.6).attr("stroke-dasharray", ft.dash).attr("d", d3.line().x((t) => x(t)).y((t) => yy(ft.f.fitted(t))));
@@ -258,13 +267,18 @@ export async function mountCurve(ctx) {
         if (!Number.isFinite(r)) return;
         g1.append("circle").attr("cx", x1(lv)).attr("cy", y1(r)).attr("r", 4).attr("fill", c);
         g1.append("line").attr("x1", x1(lv)).attr("x2", x1(lv)).attr("y1", y1(r)).attr("y2", h).attr("stroke", c).attr("stroke-dasharray", "2 2").attr("opacity", 0.5);
-        axisLabs.push({ x: x1(lv), y: h + 14, text: lbl, color: c });
+        axisLabs.push({ x: x1(lv), y: y1(r) - 10, text: lbl, color: c });
       };
       mark(best.l, "var(--series-b)", vi ? `tối ưu ${fmt.n(best.l, 2)}` : `best ${fmt.n(best.l, 2)}`);
       mark(NS_LAMBDA_DEFAULT, "var(--series-level)", "0.7308");
-      for (const it of placeLabels(axisLabs, { minGap: 52 })) {
-        g1.append("text").attr("class", "lbl").attr("text-anchor", "middle").attr("x", it.x).attr("y", it.y).style("fill", it.color).text(it.text);
-      }
+      // Nhãn nằm ngay trên điểm đánh dấu; nhãn bên trái canh phải, nhãn bên phải canh trái để không chồng nhau.
+      const lamMarks = axisLabs.slice().sort((a, b) => a.x - b.x);
+      lamMarks.forEach((it, k) => {
+        const anchor = lamMarks.length > 1 ? (k === 0 ? "end" : "start") : "middle";
+        g1.append("text").attr("class", "lbl").attr("text-anchor", anchor)
+          .attr("x", it.x + (anchor === "end" ? -4 : anchor === "start" ? 4 : 0)).attr("y", Math.max(12, it.y))
+          .style("fill", it.color).text(it.text);
+      });
       // right corr
       const x2 = d3.scaleLinear().domain([0.1, 3]).range([0, hw]);
       const lo = Math.min(0.5, d3.min(sweep, (d) => Math.min(d.L, d.S, d.C)) - 0.02);
@@ -289,13 +303,13 @@ export async function mountCurve(ctx) {
       const y = d3.scaleLinear().domain([-0.2, 1.05]).range([h, 0]);
       axisY(g, y, w, { tickFormat: (d) => fmt.n(d, 1), zero: true });
       g.append("g").attr("class", "axis").attr("transform", `translate(0,${h})`).call(d3.axisBottom(x).tickValues([0.25, 1, 2, 5, 10, 20, 30]).tickFormat(fmt.mat).tickSizeOuter(0));
-      [["f0", "var(--series-level)", "f₀≡1"], ["f1", "var(--series-slope)", "f₁"], ["f2", "var(--series-curv)", "f₂"]].forEach(([k, c, nm]) => {
+      [["f0", "var(--series-level)", "Level"], ["f1", "var(--series-slope)", "Slope"], ["f2", "var(--series-curv)", "Curvature"]].forEach(([k, c, nm]) => {
         g.append("path").datum(pts).attr("fill", "none").attr("stroke", c).attr("stroke-width", 2).attr("d", d3.line().x((d) => x(d.τ)).y((d) => y(d[k])));
       });
       endLabels(g, [
-        { x: x(30), y: y(1), text: "f₀≡1", color: "var(--series-level)" },
-        { x: x(30), y: y(pts[pts.length - 1].f1), text: "f₁", color: "var(--series-slope)" },
-        { x: x(30), y: y(pts[pts.length - 1].f2), text: "f₂", color: "var(--series-curv)" },
+        { x: x(30), y: y(1), text: "Level", color: "var(--series-level)" },
+        { x: x(30), y: y(pts[pts.length - 1].f1), text: "Slope", color: "var(--series-slope)" },
+        { x: x(30), y: y(pts[pts.length - 1].f2), text: "Curvature", color: "var(--series-curv)" },
       ]);
     });
     updateExtras();
@@ -320,7 +334,7 @@ export async function mountCurve(ctx) {
       `Ngày <span class="num">${fmt.dateText(y.dates[i])}</span>: RMSE khớp = <span class="num">${fmt.bp(f.rmse)}</span>.`,
       `${term("Level", lang).outerHTML} <span class="num">${fmt.n(f.level)}</span> = mức dài hạn; ${term("Slope", lang).outerHTML} <span class="num">${fmt.n(f.slope)}</span> = ngắn − dài (${slopeWord(f.slope, true)}).`,
       `${term("Curvature", lang).outerHTML} <span class="num">${fmt.n(f.curvature)}</span> đo độ võng trung hạn.`,
-      `λ đề án = 0.7308 ⇒ đỉnh Curvature ≈ <span class="num">${tauStar}</span> năm. NLS vs OLS (${N.n} ngày): corr ${fmt.n(N.corrLevel, 2)}/${fmt.n(N.corrSlope, 2)}/${fmt.n(N.corrCurv, 2)}.`,
+      `Với λ = 0,7308 của đề án, hệ số tải Curvature đạt cực đại tại khoảng <span class="num">${tauStar}</span> năm. Khi để λ tự do (${N.n} ngày), tương quan với nhân tố của λ cố định chỉ còn ${fmt.n(N.corrLevel, 2)} / ${fmt.n(N.corrSlope, 2)} / ${fmt.n(N.corrCurv, 2)}.`,
     ] : [
       `On <span class="num">${fmt.dateISO(y.dates[i])}</span>: fit RMSE = <span class="num">${fmt.bp(f.rmse)}</span>.`,
       `${term("Level", lang).outerHTML} <span class="num">${fmt.n(f.level)}</span> = long-run level; ${term("Slope", lang).outerHTML} <span class="num">${fmt.n(f.slope)}</span> = short − long (${slopeWord(f.slope, false)}).`,
@@ -336,7 +350,7 @@ export async function mountCurve(ctx) {
           ? `<p>${term("Slope", lang).outerHTML} âm = đường cong dốc lên (ngắn &lt; dài). Dương = đảo ngược.</p><p>λ = 0.7308 (=0.0609×12); Curvature đỉnh ≈ ${tauStar} năm.</p>`
           : `<p>Negative ${term("Slope", lang).outerHTML} = upward-sloping (short &lt; long). Positive = inverted.</p><p>λ = 0.7308 (=0.0609×12); Curvature peaks near ${tauStar} years.</p>`,
         confidence: vi
-          ? `C1 dựa số báo cáo NLS vs OLS (${N.n} ngày): corr ${fmt.n(N.corrLevel, 2)}/${fmt.n(N.corrSlope, 2)}/${fmt.n(N.corrCurv, 2)}. Lưới λ ổn định hơn NLS thật.`
+          ? `So sánh trên ${N.n} ngày cho thấy khi ước lượng λ tự do, nhân tố thu được chỉ tương quan ${fmt.n(N.corrLevel, 2)} / ${fmt.n(N.corrSlope, 2)} / ${fmt.n(N.corrCurv, 2)} với nhân tố của λ cố định. Cố định λ cho chuỗi nhân tố ổn định hơn.`
           : `C1 uses report NLS vs OLS (${N.n} days): corr ${fmt.n(N.corrLevel, 2)}/${fmt.n(N.corrSlope, 2)}/${fmt.n(N.corrCurv, 2)}. Grid λ is stabler than true NLS.`,
         limits: vi
           ? "<ul><li>Fit đẹp ≠ dự báo tốt (xem Dự báo).</li><li>DGS1MO chỉ hiển thị; cần ≥9/10 kỳ hạn mỗi ngày.</li></ul>"

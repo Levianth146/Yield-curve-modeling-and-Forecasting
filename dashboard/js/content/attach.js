@@ -8,7 +8,9 @@ export function modelFormula(lang, id, example = "") {
   return formulaCard({
     title: f.title,
     tex: f.tex,
-    symbols: f.symbols,
+    symbols: f.symbols || [],
+    where: f.where || "",
+    intro: f.intro || "",
     read: f.read,
     example,
     open: true,

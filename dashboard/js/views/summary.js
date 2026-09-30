@@ -1,3 +1,4 @@
+import { pages as pagesVi } from "../content/pages.vi.js";
 import { evaluateClaims } from "../engine/claims.js";
 import { splitProbitRows, evaluateProbitOos } from "../engine/probit.js";
 import { REPORT } from "../reportFacts.js";
@@ -133,19 +134,19 @@ export async function mountSummary(ctx) {
     status: nSup >= 3 ? "supported" : "fragile",
     lang,
     headline: vi
-      ? `<span class="num">${nSup}</span> trên 5 kết luận đứng vững, <span class="num">${nFrag}</span> mỏng manh.`
+      ? `<span class="num">${nSup}</span> trên 5 kết luận vững, <span class="num">${nFrag}</span> kết luận chưa vững.`
       : `<span class="num">${nSup}</span> of 5 claims stand, <span class="num">${nFrag}</span> fragile.`,
     body: vi
-      ? "Mỗi thẻ tính lại từ dữ liệu dashboard. “Mỏng manh” = đúng ở cấu hình đề án nhưng yếu khi đổi đặc tả lân cận."
+      ? pagesVi.summary.body
       : "Each card is recomputed from dashboard data. “Fragile” = holds at the report spec but weakens nearby.",
   });
 
   const titles = {
-    C1: vi ? "NLS fit khít hơn nhưng nhân tố bất ổn" : "NLS fits tighter but factors are unstable",
-    C2: vi ? "AR không thắng random walk" : "AR does not beat the random walk",
-    C3: vi ? "Cú sốc Fed nâng Slope" : "A Fed shock lifts Slope",
-    C4: vi ? "Probit: xếp hạng tốt, hiệu chuẩn kém" : "Probit: ranks well, calibrates poorly",
-    C5: vi ? "Việt Nam: AR cũng không thắng RW" : "Vietnam: AR does not beat RW either",
+    C1: vi ? "λ tự do khớp tốt hơn nhưng nhân tố kém ổn định" : "NLS fits tighter but factors are unstable",
+    C2: vi ? "AR không dự báo tốt hơn Random Walk" : "AR does not beat the random walk",
+    C3: vi ? "Cú sốc lãi suất Fed làm Slope tăng" : "A Fed shock lifts Slope",
+    C4: vi ? "Probit xếp hạng rủi ro tốt nhưng xác suất chưa chính xác" : "Probit: ranks well, calibrates poorly",
+    C5: vi ? "Việt Nam: AR cũng không dự báo tốt hơn Random Walk" : "Vietnam: AR does not beat RW either",
   };
 
   // T9: full sentences, not log strings
@@ -154,23 +155,23 @@ export async function mountSummary(ctx) {
       ? `Trên ${REPORT.nls.n} ngày NLS so với OLS, tương quan Level/Slope/Curvature chỉ ${fmt.n(REPORT.nls.corrLevel, 2)} / ${fmt.n(REPORT.nls.corrSlope, 2)} / ${fmt.n(REPORT.nls.corrCurv, 2)} — dưới ngưỡng ổn định 0.6 ở mọi nhân tố. Vì vậy đề án giữ λ cố định.`
       : `On ${REPORT.nls.n} NLS vs OLS days, Level/Slope/Curvature correlations are only ${fmt.n(REPORT.nls.corrLevel, 2)} / ${fmt.n(REPORT.nls.corrSlope, 2)} / ${fmt.n(REPORT.nls.corrCurv, 2)} — below the 0.6 stability bar for every factor. The project keeps fixed λ.`,
     C2: vi
-      ? `Ở dự báo Slope 12 tháng, AR không hơn random walk (p = ${fmt.p(slope12?.DM_pvalue)}); ${nSig}/12 cấu hình có p dưới 0.05.`
+      ? `Ở dự báo Slope 12 tháng, AR không dự báo tốt hơn Random Walk (p = ${fmt.p(slope12?.DM_pvalue)}); ${nSig}/12 cấu hình có p dưới 0.05.`
       : `At the Slope 12-month forecast, AR does not beat the random walk (p = ${fmt.p(slope12?.DM_pvalue)}); ${nSig}/12 configurations have p below 0.05.`,
     C3: vi
-      ? `Một cú sốc Fed +1σ làm Slope tăng ${fmt.n(cell6?.irf, 3)} điểm % sau 6 tháng (CI [${fmt.n(cell6?.lo, 3)}; ${fmt.n(cell6?.hi, 3)}]); ${pos}/${g6.length} cấu hình dương rõ — dưới ngưỡng 80% nên xếp mỏng manh.`
-      : `A Fed +1σ shock lifts Slope by ${fmt.n(cell6?.irf, 3)} pp after 6 months (CI [${fmt.n(cell6?.lo, 3)}; ${fmt.n(cell6?.hi, 3)}]); ${pos}/${g6.length} specs are clearly positive — below the 80% bar, so Fragile.`,
+      ? `Một cú sốc lãi suất Fed bằng một độ lệch chuẩn làm Slope tăng ${fmt.n(cell6?.irf, 3)} điểm % sau 6 tháng (khoảng tin cậy 95% [${fmt.n(cell6?.lo, 3)}; ${fmt.n(cell6?.hi, 3)}]); ${pos}/${g6.length} cấu hình dương rõ — dưới ngưỡng 80% cần để xếp là vững nên xếp chưa vững.`
+      : `A Fed +1σ shock lifts Slope by ${fmt.n(cell6?.irf, 3)} pp after 6 months (khoảng tin cậy 95% [${fmt.n(cell6?.lo, 3)}; ${fmt.n(cell6?.hi, 3)}]); ${pos}/${g6.length} specs are clearly positive — below the 80% bar, so Fragile.`,
     C4: vi
-      ? `Đảo ngược xếp hạng rủi ro tốt (AUC ${fmt.n(pm.auc, 3)}) nhưng xác suất kém hơn tần suất nền (BSS ${fmt.sgpct(pm.bss)}).`
+      ? `Đảo ngược xếp hạng rủi ro tốt (AUC ${fmt.n(pm.auc, 3)}) nhưng xác suất kém chính xác hơn mô hình đối chứng (BSS ${fmt.sgpct(pm.bss)}).`
       : `Inversion ranks risk well (AUC ${fmt.n(pm.auc, 3)}) but probabilities underperform the base rate (BSS ${fmt.sgpct(pm.bss)}).`,
     C5: vi
-      ? `Trên ${vnRows.length} ô AR so với random walk ở Việt Nam, chỉ ${vnSig} ô có p dưới 0.05, mỗi ô chỉ 21–32 quan sát ngoài mẫu.`
+      ? `Trên ${vnRows.length} ô AR so với Random Walk ở Việt Nam, chỉ ${vnSig} ô có p dưới 0.05, mỗi ô chỉ 21–32 quan sát ngoài mẫu.`
       : `Across ${vnRows.length} Vietnam AR vs random-walk cells, only ${vnSig} have p below 0.05, each with only 21–32 OOS observations.`,
   };
 
   const cards = [
     { id: "C1", viz: barsThr([REPORT.nls.corrLevel, REPORT.nls.corrSlope, REPORT.nls.corrCurv], ["Level", "Slope", "Curvature"], 0.6) },
     { id: "C2", viz: pStrip(arP, 0.05) },
-    { id: "C3", viz: splitBar([{ n: pos, c: "var(--status-good)", l: vi ? "dương rõ" : "positive" }, { n: g6.length - pos - neg, c: "var(--ink-muted)", l: vi ? "mơ hồ" : "unclear" }, { n: neg, c: "var(--series-slope)", l: vi ? "âm rõ" : "negative" }]) },
+    { id: "C3", viz: splitBar([{ n: pos, c: "var(--status-good)", l: vi ? "dương rõ" : "positive" }, { n: g6.length - pos - neg, c: "var(--ink-muted)", l: vi ? "không rõ" : "unclear" }, { n: neg, c: "var(--series-slope)", l: vi ? "âm rõ" : "negative" }]) },
     { id: "C4", viz: auc_bss(pm.auc, pm.bss) },
     { id: "C5", viz: pStrip(vnRows.map((r) => Number(r.DM_pvalue)), 0.05) },
   ];
@@ -180,7 +181,7 @@ export async function mountSummary(ctx) {
     const it = by[c.id], [ic, cls, sk] = ST[it.status];
     grid2.append(el("section", { class: "claim-card" },
       el("div", { class: "st " + cls }, el("i", {}, ic), `${c.id} · ${t(lang, sk)}`),
-      el("h3", { class: "fig-title", style: "margin-top:6px;font-size:1.05rem" }, titles[c.id]),
+      el("h3", { class: "fig-title", style: "margin-top:6px;font-size:1.2rem" }, titles[c.id]),
       c.viz,
       el("p", { class: "ev", html: caps[c.id] }),
       el("a", { href: `#/${LINKS[c.id]}` }, vi ? "Xem trang chi tiết →" : "Open detail →"),

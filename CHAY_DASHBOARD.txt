@@ -1,0 +1,49 @@
+YIELD CURVE LAB - UI V3
+=======================
+
+CACH 1 - DE NHAT TREN WINDOWS
+----------------------------
+1. Giai nen TOAN BO project.
+2. Double-click file Mo_dashboard.bat o THU MUC GOC.
+3. Launcher se tu mo trinh duyet.
+4. Giu cua so server mo trong luc dung dashboard.
+5. Nhan Ctrl+C de tat.
+
+Server uu tien port 8765. Neu port 8765 dang ban, no se tu chon port ke tiep
+va in URL chinh xac tren man hinh.
+
+CACH 2 - POWERSHELL / TERMINAL
+-----------------------------
+Mo PowerShell tai thu muc goc project va chay:
+
+    py scripts\serve_dashboard.py
+
+Neu may khong co lenh py:
+
+    python scripts\serve_dashboard.py
+
+Mo kem self-test:
+
+    py scripts\serve_dashboard.py --selftest
+
+Chon port rieng:
+
+    py scripts\serve_dashboard.py --port 8766
+
+CACH 3 - HTTP SERVER CO BAN (DU PHONG)
+--------------------------------------
+    cd dashboard
+    py -m http.server 8765
+
+Sau do mo:
+    http://127.0.0.1:8765/
+
+Cach 3 khong co no-cache. Khi dang sua giao dien, uu tien Cach 1 hoac Cach 2.
+
+DAU HIEU DANG MO DUNG BAN UI MOI
+--------------------------------
+- Tab 01 la "Tong quan", khong phai "Hom nay".
+- Trang 01 co khoi Co so ly thuyet A1-A6.
+- Trang Tong quan khong lap cot "Nghia la gi" o phan cuoi.
+- Tab 08 la "Phuong phap".
+- Formula card trinh bay "Trong do" moi ky hieu mot dong.
